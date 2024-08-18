@@ -7,7 +7,8 @@ import tempfile
 import requests
 from datetime import datetime, timedelta
 import os
-from osgeo import gdal
+from rio_cogeo.cogeo import cog_translate
+from rio_cogeo.profiles import cog_profiles
 import leafmap.foliumap as leafmap
 
 # Authentication and request parameters
@@ -164,7 +165,8 @@ def fetch_rain_data_as_geotiff(rain_data):
 # Convert GeoTIFF to Cloud Optimized GeoTIFF (COG)
 def convert_to_cog(geotiff_path):
     cog_path = geotiff_path.replace(".tif", "_cog.tif")
-    gdal.Translate(cog_path, geotiff_path, options=gdal.TranslateOptions(format="COG"))
+    profile = cog_profiles.get("deflate")
+    cog_translate(geotiff_path, cog_path, profile)
     return cog_path
 
 # Display COG using leafmap with Mapbox
