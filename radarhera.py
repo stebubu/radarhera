@@ -1,14 +1,15 @@
 import streamlit as st
-import requests
-import os
-from datetime import datetime, timedelta
 import xarray as xr
 import numpy as np
-import pydeck as pdk
-import pandas as pd
+import rasterio
+from rasterio.transform import from_origin
+import folium
+from folium import raster_layers
 import tempfile
+import requests
+from datetime import datetime, timedelta
 
-# Set up the API authentication
+# Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
 body = {
     "username": "gecosistema",
@@ -16,11 +17,8 @@ body = {
 }
 response = requests.post(auth_url, json=body).json()
 token = response['token']
-
-# Set up headers with token
 headers = {"Authorization": f"Bearer {token}"}
 
-# WCS Request parameters
 base_url = "https://api.hypermeteo.com/b2b-binary/ogc/geoserver/wcs"
 service = "WCS"
 request_type = "GetCoverage"
@@ -29,6 +27,14 @@ coverage_id = "RADAR_HERA_150M_5MIN__rainrate"
 format_type = "application/x-netcdf"
 subset_lat = "Lat(43.8,44.2)"
 subset_lon = "Long(12.4,12.9)"
+
+# Coordinates and cell size
+lon_min = 12.4
+lon_max = 12.9
+lat_min = 43.8
+lat_max = 44.2
+cell_size_lon = 0.001873207092285156293
+cell_size_lat = -0.00134747044569781039
 
 # Streamlit app layout
 st.title("Rain Rate Mapping")
@@ -101,73 +107,65 @@ def fetch_rain_data(start_time, end_time):
     
     return rain_data
 
-rain_data = fetch_rain_data(start_time, end_time)
-
-# Check if rain_data is not None and not empty
-if rain_data and len(rain_data) > 0:
-    if cumulative_interval != "No Cumulative":
-        # Combine data if necessary, for cumulative sum
-        combined_data = xr.concat(rain_data, dim='time').sum(dim='time')
-    else:
+# Convert NetCDF to GeoTIFF
+def fetch_rain_data_as_geotiff(rain_data):
+    if rain_data and len(rain_data) > 0:
         combined_data = rain_data[0]  # Use the single time step data
 
-    # Extract and align lat, lon, and rainrate
-    try:
+        # Extract lat, lon, and rainrate
         lat = combined_data.coords['lat'].values
         lon = combined_data.coords['lon'].values
         rainrate = combined_data['rainrate'].values
 
-        # Print out shapes for debugging
-        st.write(f"lat shape: {lat.shape}")
-        st.write(f"lon shape: {lon.shape}")
-        st.write(f"rainrate shape: {rainrate.shape}")
-
-        # Ensure that lat, lon, and rainrate are 2D and have the same shape
+        # Check if lat, lon, and rainrate have matching dimensions
         if len(lat.shape) == 1 and len(lon.shape) == 1 and len(rainrate.shape) == 2:
             lon, lat = np.meshgrid(lon, lat)
-        
-        # Re-check the shapes after alignment
-        st.write(f"After meshgrid - lat shape: {lat.shape}")
-        st.write(f"After meshgrid - lon shape: {lon.shape}")
 
+        # Confirm shapes match
         if lat.shape == lon.shape == rainrate.shape:
-            # Flatten the arrays for plotting
-            df = pd.DataFrame({
-                'lat': lat.flatten(),
-                'lon': lon.flatten(),
-                'rainrate': rainrate.flatten()
-            })
-
-            # Ensure the latitude and longitude are valid numbers
-            mean_lat = np.mean(lat)
-            mean_lon = np.mean(lon)
-
-            if np.isfinite(mean_lat) and np.isfinite(mean_lon):
-                st.pydeck_chart(pdk.Deck(
-                    map_style='mapbox://styles/mapbox/light-v9',
-                    initial_view_state=pdk.ViewState(
-                        latitude=float(mean_lat),
-                        longitude=float(mean_lon),
-                        zoom=8,
-                        pitch=50,
-                    ),
-                    layers=[
-                        pdk.Layer(
-                            'ScatterplotLayer',
-                            data=df,
-                            get_position='[lon, lat]',
-                            get_color='[200, 30, 0, 160]',
-                            get_radius='rainrate * 100',
-                            pickable=True,
-                        ),
-                    ],
-                ))
-            else:
-                st.error("Invalid latitude or longitude values.")
+            # Create the GeoTIFF using rasterio
+            transform = from_origin(lon_min, lat_max, cell_size_lon, abs(cell_size_lat))
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.tif') as tmp_file:
+                with rasterio.open(
+                    tmp_file.name,
+                    'w',
+                    driver='GTiff',
+                    height=rainrate.shape[0],
+                    width=rainrate.shape[1],
+                    count=1,
+                    dtype=rainrate.dtype,
+                    crs='EPSG:4326',
+                    transform=transform,
+                ) as dst:
+                    dst.write(rainrate, 1)
+                geotiff_path = tmp_file.name
+                return geotiff_path
         else:
             st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
-    except KeyError as e:
-        st.error(f"Missing expected data in the dataset: {e}")
-else:
-    st.warning("No data available for the selected time and cumulative interval.")
+            return None
+    else:
+        st.warning("No data available for the selected time and cumulative interval.")
+        return None
 
+# Map the GeoTIFF using folium
+def map_geotiff(geotiff_path):
+    m = folium.Map(location=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom_start=10)
+    raster = raster_layers.ImageOverlay(
+        image=geotiff_path,
+        bounds=[[lat_min, lon_min], [lat_max, lon_max]],
+        opacity=0.6
+    )
+    raster.add_to(m)
+    folium.LayerControl().add_to(m)
+    return m
+
+# Main processing and mapping
+rain_data = fetch_rain_data(start_time, end_time)
+
+geotiff_path = fetch_rain_data_as_geotiff(rain_data)
+if geotiff_path:
+    st.write("GeoTIFF created at:", geotiff_path)
+    m = map_geotiff(geotiff_path)
+    st.components.v1.html(m._repr_html_(), height=500)
+else:
+    st.error("Failed to create GeoTIFF.")
