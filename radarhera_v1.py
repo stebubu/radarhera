@@ -186,6 +186,19 @@ def convert_to_cog(geotiff_path):
     return cog_path
 
 # Display COG using Mapbox GL
+
+# Function to display the raster on a Mapbox basemap using leafmap
+def display_raster_on_map(cog_path):
+    try:
+        m = leafmap.Map(center=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom=10)
+        m.add_cog_layer(cog_path, name="COG Raster", band=1, palette="viridis", rescale="0,100")
+        m.add_basemap("Mapbox", url="mapbox://styles/mapbox/light-v10")
+        m.to_streamlit(height=500)
+    except Exception as e:
+        st.error(f"Failed to display the raster on the map: {e}")
+
+
+'''
 def display_cog_on_map(cog_path, mapbox_token):
     try:
         st.write("Rendering map...")
@@ -200,7 +213,7 @@ def display_cog_on_map(cog_path, mapbox_token):
         st.components.v1.html(viz.create_html(), height=500)
     except Exception as e:
         st.error(f"Failed to display COG on the map: {e}")
-
+'''
 # Main processing and mapping
 rain_data = fetch_rain_data(start_time, end_time)
 
