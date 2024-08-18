@@ -428,7 +428,7 @@ def display_cog_with_folium(cog_path):
             # Check if the array is empty or all zeros
             if band1.size == 0 or np.all(band1 == 0):
                 st.error("The raster data is empty or contains only zero values.")
-                return
+                #return
 
             # Reshape as image if needed (for multi-band)
             if count > 1:
