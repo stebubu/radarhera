@@ -197,6 +197,7 @@ def display_cog_on_map(cog_path):
     try:
         st.write("Rendering map...")
         
+        # Open the COG file
         with rasterio.open(cog_path) as src:
             # Get bounds and CRS
             bounds = src.bounds
@@ -206,35 +207,15 @@ def display_cog_on_map(cog_path):
             st.write(f"Bounds: {bounds}")
             st.write(f"CRS: {crs}")
             
-            # Fake band descriptions
-            fake_band_descriptions = ['Fake Band 1', 'Fake Band 2', 'Fake Band 3']
-            st.write(f"Fake Band Descriptions: {fake_band_descriptions}")
-            
-            # Calculate center
+            # Calculate center of the raster
             center = [(bounds.top + bounds.bottom) / 2, (bounds.left + bounds.right) / 2]
             st.write(f"Center: {center}")
             
-            # Create a map
+            # Create a map centered on the raster
             m = leafmap.Map(center=center, zoom=10)
             st.write("Map created successfully.")
             
-            # Add the COG layer with resampling to handle different band descriptions
-            with rasterio.open(cog_path) as dataset:
-                # Resampling to reduce resolution (if needed)
-                data = dataset.read(
-                    out_shape=(
-                        dataset.count,
-                        int(dataset.height),
-                        int(dataset.width)
-                    ),
-                    resampling=Resampling.bilinear
-                )
-            
-            # Add the fake band descriptions (this is just for logging purposes, not used in mapping)
-            for i in range(len(fake_band_descriptions)):
-                st.write(f"Band {i + 1}: {fake_band_descriptions[i]}")
-            
-            # Add the COG to the map
+            # Add the COG layer to the map
             m.add_cog_layer(cog_path, name="COG Layer")
             st.write("COG Layer added to the map.")
             
@@ -245,6 +226,7 @@ def display_cog_on_map(cog_path):
     except Exception as e:
         st.error(f"Failed to display COG on the map: {e}")
         st.write(f"Error details: {str(e)}")
+
 
 
 '''
