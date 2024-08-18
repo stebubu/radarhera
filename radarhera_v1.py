@@ -33,8 +33,8 @@ subset_lat = "Lat(43.8,44.2)"
 subset_lon = "Long(12.4,12.9)"
 
 # Coordinates and cell size
-lon_min = 12.4
-lon_max = 12.9
+lon_min = 12.9
+lon_max = 12.4
 lat_min = 43.8
 lat_max = 44.2
 cell_size_lon = 0.001873207092285156293
