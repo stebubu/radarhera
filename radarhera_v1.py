@@ -121,6 +121,7 @@ def fetch_acc_rain_data(start_time, end_time):
                         accumulated_rain = accumulated_rain + rain.fillna(0)
                         st.write(f"Current time: {current_time}")
                         st.write(f"Rainrate shape: {rain.shape}")
+                        st.write(f"Rainrate sum: {rain.sum()}")
                         st.write(f"Accumulated rain shape before sum: {accumulated_rain.shape}")
 
                 else:
