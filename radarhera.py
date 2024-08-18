@@ -129,30 +129,36 @@ if rain_data and len(rain_data) > 0:
                 'rainrate': rainrate.flatten()
             })
 
-            st.pydeck_chart(pdk.Deck(
-                map_style='mapbox://styles/mapbox/light-v9',
-                initial_view_state=pdk.ViewState(
-                    latitude=np.mean(lat),
-                    longitude=np.mean(lon),
-                    zoom=8,
-                    pitch=50,
-                ),
-                layers=[
-                    pdk.Layer(
-                        'ScatterplotLayer',
-                        data=df,
-                        get_position='[lon, lat]',
-                        get_color='[200, 30, 0, 160]',
-                        get_radius='rainrate * 100',
-                        pickable=True,
+            # Ensure the latitude and longitude are valid numbers
+            mean_lat = np.mean(lat)
+            mean_lon = np.mean(lon)
+
+            if np.isfinite(mean_lat) and np.isfinite(mean_lon):
+                st.pydeck_chart(pdk.Deck(
+                    map_style='mapbox://styles/mapbox/light-v9',
+                    initial_view_state=pdk.ViewState(
+                        latitude=float(mean_lat),
+                        longitude=float(mean_lon),
+                        zoom=8,
+                        pitch=50,
                     ),
-                ],
-            ))
+                    layers=[
+                        pdk.Layer(
+                            'ScatterplotLayer',
+                            data=df,
+                            get_position='[lon, lat]',
+                            get_color='[200, 30, 0, 160]',
+                            get_radius='rainrate * 100',
+                            pickable=True,
+                        ),
+                    ],
+                ))
+            else:
+                st.error("Invalid latitude or longitude values.")
         else:
             st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
     except KeyError as e:
         st.error(f"Missing expected data in the dataset: {e}")
 else:
     st.warning("No data available for the selected time and cumulative interval.")
-
 
