@@ -425,14 +425,25 @@ def display_cog_with_folium(cog_path):
             # Read the first band (assuming single-band raster for simplicity)
             band1 = src.read(1)
 
+            # Check if the array is empty or all zeros
+            if band1.size == 0 or np.all(band1 == 0):
+                st.error("The raster data is empty or contains only zero values.")
+                return
+
             # Reshape as image if needed (for multi-band)
             if count > 1:
                 image = reshape_as_image(src.read([1, 2, 3]))  # Assuming RGB bands
             else:
                 image = band1  # For single band, use directly
+
             # Create a normalized colormap where 0 is transparent and blue is the color
-            norm = colors.Normalize(vmin=np.min(band1[band1 > 0]), vmax=np.max(band1))
+            vmin = np.min(band1[band1 > 0]) if np.any(band1 > 0) else 0
+            vmax = np.max(band1)
+            norm = colors.Normalize(vmin=vmin, vmax=vmax)
             cmap = cm.get_cmap('Blues')
+            # Create a normalized colormap where 0 is transparent and blue is the color
+            #norm = colors.Normalize(vmin=np.min(band1[band1 > 0]), vmax=np.max(band1))
+            #cmap = cm.get_cmap('Blues')
 
             # Apply the colormap and transparency
             rgba_image = cmap(norm(band1))
