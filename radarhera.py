@@ -8,6 +8,7 @@ from folium import raster_layers
 import tempfile
 import requests
 from datetime import datetime, timedelta
+import os
 
 # Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
@@ -69,6 +70,7 @@ start_time = end_time - cumulative_options[cumulative_interval]
 def fetch_rain_data(start_time, end_time):
     current_time = start_time
     rain_data = []
+    temp_files = []  # List to keep track of temporary files for later cleanup
     
     while current_time <= end_time:
         subset_time = f'time("{current_time.isoformat(timespec="milliseconds")}Z")'
@@ -85,25 +87,30 @@ def fetch_rain_data(start_time, end_time):
         response = requests.get(base_url, headers=headers, params=params)
         
         if response.status_code == 200:
-            # Save the response content to a temporary file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.nc') as tmp_file:
-                tmp_file.write(response.content)
-                tmp_file_path = tmp_file.name
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.nc')
+            tmp_file.write(response.content)
+            tmp_file_path = tmp_file.name
+            tmp_file.close()
+            temp_files.append(tmp_file_path)
 
             try:
                 # Open the dataset from the temporary file
-                ds = xr.open_dataset(tmp_file_path, engine='netcdf4')  # You can change the engine if needed
+                ds = xr.open_dataset(tmp_file_path, engine='netcdf4')
                 rain_data.append(ds)
             except Exception as e:
                 st.error(f"Failed to open dataset: {e}")
-            finally:
-                os.remove(tmp_file_path)  # Clean up the temporary file
-
         else:
             st.error(f"Error fetching data for {current_time}: {response.text}")
-            return None
+            break
         
         current_time += timedelta(minutes=5)
+    
+    # Clean up temporary files
+    for file_path in temp_files:
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            st.error(f"Failed to remove temporary file: {file_path}. Error: {e}")
     
     return rain_data
 
@@ -169,3 +176,4 @@ if geotiff_path:
     st.components.v1.html(m._repr_html_(), height=500)
 else:
     st.error("Failed to create GeoTIFF.")
+
