@@ -61,6 +61,10 @@ end_time = selected_time
 start_time = end_time - cumulative_options[cumulative_interval]
 
 # Fetch data from API
+import tempfile
+import xarray as xr
+import streamlit as st
+
 def fetch_rain_data(start_time, end_time):
     current_time = start_time
     rain_data = []
@@ -80,7 +84,20 @@ def fetch_rain_data(start_time, end_time):
         response = requests.get(base_url, headers=headers, params=params)
         
         if response.status_code == 200:
-            rain_data.append(xr.open_dataset(response.content))
+            # Save the response content to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.nc') as tmp_file:
+                tmp_file.write(response.content)
+                tmp_file_path = tmp_file.name
+
+            try:
+                # Open the dataset from the temporary file
+                ds = xr.open_dataset(tmp_file_path, engine='netcdf4')  # You can change the engine if needed
+                rain_data.append(ds)
+            except Exception as e:
+                st.error(f"Failed to open dataset: {e}")
+            finally:
+                os.remove(tmp_file_path)  # Clean up the temporary file
+
         else:
             st.error(f"Error fetching data for {current_time}: {response.text}")
             return None
@@ -88,8 +105,6 @@ def fetch_rain_data(start_time, end_time):
         current_time += timedelta(minutes=5)
     
     return rain_data
-
-rain_data = fetch_rain_data(start_time, end_time)
 
 # Process and visualize the data
 if rain_data:
