@@ -409,13 +409,21 @@ def display_cog_with_folium(cog_path):
                 image = reshape_as_image(src.read([1, 2, 3]))  # Assuming RGB bands
             else:
                 image = band1  # For single band, use directly
+            # Create a normalized colormap where 0 is transparent and blue is the color
+            norm = colors.Normalize(vmin=np.min(band1[band1 > 0]), vmax=np.max(band1))
+            cmap = cm.get_cmap('Blues')
+
+            # Apply the colormap and transparency
+            rgba_image = cmap(norm(band1))
+            rgba_image[band1 == 0] = [0, 0, 0, 0]  # Make value 0 fully transparent
+
 
             # Create a folium map centered on the raster
             m = folium.Map(location=[(lat_min + lat_max) / 2, (lon_min + lon_max) / 2], zoom_start=10)
 
             # Add the raster as an image overlay
             image_overlay = folium.raster_layers.ImageOverlay(
-                image=image,
+                image=rgba_image,
                 bounds=[[lat_min, lon_min], [lat_max, lon_max]],
                 opacity=0.7,
                 interactive=True,
