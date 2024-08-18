@@ -256,6 +256,13 @@ from rasterio.plot import reshape_as_image
 from rasterio.warp import transform_bounds
 from streamlit_folium import folium_static
 
+import streamlit as st
+import rasterio
+import folium
+from rasterio.plot import reshape_as_image
+from rasterio.warp import transform_bounds
+from streamlit_folium import folium_static
+
 def display_cog_with_folium(cog_path):
     try:
         st.write("Rendering map with Folium...")
@@ -283,7 +290,7 @@ def display_cog_with_folium(cog_path):
             m = folium.Map(location=[(lat_min + lat_max) / 2, (lon_min + lon_max) / 2], zoom_start=10)
 
             # Add the raster as an image overlay
-            image_overlay = ImageOverlay(
+            image_overlay = folium.raster_layers.ImageOverlay(
                 image=image,
                 bounds=[[lat_min, lon_min], [lat_max, lon_max]],
                 opacity=0.7,
