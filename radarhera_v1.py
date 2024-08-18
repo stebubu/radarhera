@@ -3,12 +3,11 @@ import xarray as xr
 import numpy as np
 import rasterio
 from rasterio.transform import from_origin
+from rasterio.enums import Resampling
 import tempfile
 import requests
 from datetime import datetime, timedelta
 import os
-from rio_cogeo.cogeo import cog_translate
-from rio_cogeo.profiles import cog_profiles
 import leafmap.foliumap as leafmap
 
 # Authentication and request parameters
@@ -165,8 +164,21 @@ def fetch_rain_data_as_geotiff(rain_data):
 # Convert GeoTIFF to Cloud Optimized GeoTIFF (COG)
 def convert_to_cog(geotiff_path):
     cog_path = geotiff_path.replace(".tif", "_cog.tif")
-    profile = cog_profiles.get("deflate")
-    cog_translate(geotiff_path, cog_path, profile)
+    with rasterio.open(geotiff_path) as src:
+        profile = src.profile.copy()
+        profile.update(
+            driver="GTiff",
+            tiled=True,
+            blockxsize=256,
+            blockysize=256,
+            compress="deflate",
+            interleave="band",
+            dtype=rasterio.float32,
+            bigtiff="IF_SAFER",
+        )
+        with rasterio.open(cog_path, "w", **profile) as dst:
+            for i in range(1, src.count + 1):
+                dst.write(src.read(i, resampling=Resampling.nearest), indexes=i)
     return cog_path
 
 # Display COG using leafmap with Mapbox
