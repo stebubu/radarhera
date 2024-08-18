@@ -151,7 +151,7 @@ def fetch_acc_rain_data(start_time, end_time):
 
         # Squeeze out any remaining singleton dimensions
         accumulated_rain = accumulated_rain.squeeze()'''
-   # Final processing to sum across any remaining dimensions
+    # Final processing to sum across any remaining dimensions
 
     # Final processing to sum across the first dimension (7 slices)
     if accumulated_rain is not None:
