@@ -113,36 +113,39 @@ if rain_data and len(rain_data) > 0:
     else:
         combined_data = rain_data[0]  # Use the single time step data
 
-    # Assume combined_data has lat/lon dimensions
+    # Ensure dimensions are aligned and consistent
     lat = combined_data['lat'].values
     lon = combined_data['lon'].values
     rainrate = combined_data['rainrate'].values
 
-    # Create a DataFrame for mapping
-    df = pd.DataFrame({
-        'lat': lat.flatten(),
-        'lon': lon.flatten(),
-        'rainrate': rainrate.flatten()
-    })
+    # Flatten the arrays and ensure they have the same length
+    if lat.shape != lon.shape or lat.shape != rainrate.shape:
+        st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
+    else:
+        df = pd.DataFrame({
+            'lat': lat.flatten(),
+            'lon': lon.flatten(),
+            'rainrate': rainrate.flatten()
+        })
 
-    st.pydeck_chart(pdk.Deck(
-        map_style='mapbox://styles/mapbox/light-v9',
-        initial_view_state=pdk.ViewState(
-            latitude=np.mean(lat),
-            longitude=np.mean(lon),
-            zoom=8,
-            pitch=50,
-        ),
-        layers=[
-            pdk.Layer(
-                'ScatterplotLayer',
-                data=df,
-                get_position='[lon, lat]',
-                get_color='[200, 30, 0, 160]',
-                get_radius='rainrate * 100',
-                pickable=True,
+        st.pydeck_chart(pdk.Deck(
+            map_style='mapbox://styles/mapbox/light-v9',
+            initial_view_state=pdk.ViewState(
+                latitude=np.mean(lat),
+                longitude=np.mean(lon),
+                zoom=8,
+                pitch=50,
             ),
-        ],
-    ))
+            layers=[
+                pdk.Layer(
+                    'ScatterplotLayer',
+                    data=df,
+                    get_position='[lon, lat]',
+                    get_color='[200, 30, 0, 160]',
+                    get_radius='rainrate * 100',
+                    pickable=True,
+                ),
+            ],
+        ))
 else:
     st.warning("No data available for the selected time and cumulative interval.")
