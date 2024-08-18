@@ -34,18 +34,17 @@ subset_lon = "Long(12.4,12.9)"
 st.title("Rain Rate Mapping")
 st.sidebar.title("Settings")
 
-# Time selection widgets
-current_time = datetime.utcnow().replace(second=0, microsecond=0)
-start_of_day = current_time.replace(hour=0, minute=0)
+# Date selection
+selected_date = st.sidebar.date_input("Select date", datetime.utcnow().date())
 
 # Hour selection
-selected_hour = st.sidebar.selectbox("Select hour of the day", options=range(24), index=current_time.hour)
+selected_hour = st.sidebar.selectbox("Select hour of the day", options=range(24), index=datetime.utcnow().hour)
 
 # Minute selection in 5-minute increments
-selected_minute = st.sidebar.select_slider("Select minute of the hour", options=list(range(0, 60, 5)), value=current_time.minute - (current_time.minute % 5))
+selected_minute = st.sidebar.select_slider("Select minute of the hour", options=list(range(0, 60, 5)), value=(datetime.utcnow().minute // 5) * 5)
 
-# Combine selected hour and minute into a datetime object
-selected_time = start_of_day + timedelta(hours=selected_hour, minutes=selected_minute)
+# Combine selected date, hour, and minute into a datetime object
+selected_time = datetime.combine(selected_date, datetime.min.time()) + timedelta(hours=selected_hour, minutes=selected_minute)
 
 # Select cumulative interval
 cumulative_options = {
@@ -118,13 +117,15 @@ if rain_data and len(rain_data) > 0:
     rainrate = combined_data['rainrate'].values
 
     # Flatten the arrays and ensure they have the same length
-    if lat.shape != lon.shape or lat.shape != rainrate.shape:
-        st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
-    else:
+    if len(lat.shape) == 2 and len(lon.shape) == 2 and len(rainrate.shape) == 2:
+        lat = lat.flatten()
+        lon = lon.flatten()
+        rainrate = rainrate.flatten()
+
         df = pd.DataFrame({
-            'lat': lat.flatten(),
-            'lon': lon.flatten(),
-            'rainrate': rainrate.flatten()
+            'lat': lat,
+            'lon': lon,
+            'rainrate': rainrate
         })
 
         st.pydeck_chart(pdk.Deck(
@@ -146,6 +147,8 @@ if rain_data and len(rain_data) > 0:
                 ),
             ],
         ))
+    else:
+        st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
 else:
     st.warning("No data available for the selected time and cumulative interval.")
 
