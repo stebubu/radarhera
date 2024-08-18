@@ -144,7 +144,7 @@ def fetch_acc_rain_data(start_time, end_time):
             st.error(f"Failed to remove temporary file: {file_path}. Error: {e}")
     # Final processing to sum across the first dimension (7 slices)
     if accumulated_rain is not None:
-        accumulated_rain = accumulated_rain.sum(dim='dim_0')  # Replace 'dim_0' with the actual dimension name if available
+        accumulated_rain = accumulated_rain.sum(dim='time')  # Replace 'dim_0' with the actual dimension name if available
         
         # Ensure that the result is a 2D array (lat, lon)
         accumulated_rain = accumulated_rain.squeeze()
