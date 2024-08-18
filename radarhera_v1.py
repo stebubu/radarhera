@@ -9,10 +9,7 @@ import tempfile
 import requests
 from datetime import datetime, timedelta
 import os
-import http.server
-import socketserver
-import threading
-import time
+import base64
 
 # Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
@@ -165,29 +162,19 @@ def fetch_rain_data_as_geotiff(rain_data):
         st.warning("No data available for the selected time and cumulative interval.")
         return None
 
-# Start a temporary HTTP server to serve the GeoTIFF
-def serve_geotiff(geotiff_path):
-    handler = http.server.SimpleHTTPRequestHandler
-    os.chdir(os.path.dirname(geotiff_path))
-    
-    port = 8000  # You can choose any available port
-    httpd = socketserver.TCPServer(("0.0.0.0", port), handler)
-    
-    thread = threading.Thread(target=httpd.serve_forever)
-    thread.daemon = True
-    thread.start()
-    
-    # Return the URL of the served file
-    geotiff_url = f"http://localhost:{port}/{os.path.basename(geotiff_path)}"
-    
-    return geotiff_url, httpd
+# Convert GeoTIFF to Base64
+def geotiff_to_base64(geotiff_path):
+    with open(geotiff_path, "rb") as f:
+        data = f.read()
+    encoded = base64.b64encode(data).decode('utf-8')
+    return f"data:image/tiff;base64,{encoded}"
 
 # Map the GeoTIFF using folium
-def map_geotiff(geotiff_url):
+def map_geotiff(base64_str):
     try:
         m = folium.Map(location=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom_start=10)
         raster = raster_layers.ImageOverlay(
-            image=geotiff_url,
+            image=base64_str,
             bounds=[[lat_min, lon_min], [lat_max, lon_max]],
             opacity=0.6
         )
@@ -205,11 +192,11 @@ geotiff_path = fetch_rain_data_as_geotiff(rain_data)
 if geotiff_path:
     st.write("GeoTIFF created at:", geotiff_path)
     
-    # Serve the GeoTIFF and get the URL
-    geotiff_url, httpd = serve_geotiff(geotiff_path)
+    # Convert the GeoTIFF to a base64 string
+    base64_str = geotiff_to_base64(geotiff_path)
     
     # Display the map
-    m = map_geotiff(geotiff_url)
+    m = map_geotiff(base64_str)
     if m:
         st.components.v1.html(m._repr_html_(), height=500)
     
@@ -221,8 +208,6 @@ if geotiff_path:
             file_name="rainrate_geotiff.tif",
             mime="image/tiff"
         )
-    
-    # Stop the HTTP server when done
-    httpd.shutdown()
 else:
     st.error("Failed to create GeoTIFF.")
+
