@@ -8,8 +8,10 @@ import tempfile
 import requests
 from datetime import datetime, timedelta
 import os
-import folium
-from folium import raster_layers
+from mapboxgl.viz import RasterTilesViz
+from mapboxgl.utils import create_color_stops
+from mapboxgl.viz import RasterTilesViz
+import json
 
 # Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
@@ -183,18 +185,19 @@ def convert_to_cog(geotiff_path):
                 dst.write(data, indexes=i)
     return cog_path
 
-# Display COG using folium with ImageOverlay
-def display_cog_on_map(cog_path):
+# Display COG using Mapbox GL
+def display_cog_on_map(cog_path, mapbox_token):
     try:
-        m = folium.Map(location=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom_start=10)
-        raster = raster_layers.ImageOverlay(
-            image=cog_path,
-            bounds=[[lat_min, lon_min], [lat_max, lon_max]],
-            opacity=0.6
+        st.write("Rendering map...")
+        viz = RasterTilesViz(
+            access_token=mapbox_token,
+            tiles_url=cog_path,
+            tiles_bounds=[[lat_min, lon_min], [lat_max, lon_max]],
+            center=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2],
+            zoom=10,
+            style="mapbox://styles/mapbox/light-v10"
         )
-        raster.add_to(m)
-        folium.LayerControl().add_to(m)
-        st.components.v1.html(m._repr_html_(), height=500)
+        st.components.v1.html(viz.create_html(), height=500)
     except Exception as e:
         st.error(f"Failed to display COG on the map: {e}")
 
@@ -209,17 +212,9 @@ if geotiff_path:
     cog_path = convert_to_cog(geotiff_path)
     st.write("COG created at:", cog_path)
     
-    # Display the COG on a map using folium
-    display_cog_on_map(cog_path)
-    
-    # Allow the user to download the COG file
-    with open(cog_path, "rb") as file:
-        st.download_button(
-            label="Download COG",
-            data=file,
-            file_name="rainrate_cog.tif",
-            mime="image/tiff"
-        )
-else:
-    st.error("Failed to create GeoTIFF.")
+    # Display the COG on a map using Mapbox GL
+    mapbox_token = st.text_input("Enter your Mapbox token:", type="password")
+    if mapbox_token:
+        display_cog_on_map(cog_path, mapbox_token)
+
 
