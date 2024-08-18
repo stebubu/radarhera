@@ -12,7 +12,7 @@ from mapboxgl.viz import RasterTilesViz
 from mapboxgl.utils import create_color_stops
 from mapboxgl.viz import RasterTilesViz
 import json
-
+import leafmap.foliumap as leafmap
 # Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
 body = {
