@@ -155,6 +155,7 @@ def fetch_acc_rain_data(start_time, end_time):
     if accumulated_rain is not None:
         # Sum across all dimensions except lat and lon
         for dim in accumulated_rain.dims:
+            st.write(f"dim: {dim}")
             if dim not in ['lat', 'lon']:
                 accumulated_rain = accumulated_rain.sum(dim=dim)
         
