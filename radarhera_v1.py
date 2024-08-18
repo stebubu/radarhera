@@ -119,6 +119,10 @@ def fetch_acc_rain_data(start_time, end_time):
                         # Align the datasets using 'outer' join
                         accumulated_rain, rain = xr.align(accumulated_rain, rain, join='outer')
                         accumulated_rain = accumulated_rain + rain.fillna(0)
+                        st.write(f"Current time: {current_time}")
+                        st.write(f"Rainrate shape: {rain.shape}")
+                        st.write(f"Accumulated rain shape before sum: {accumulated_rain.shape}")
+
                 else:
                     st.error(f"'rainrate' variable not found in dataset for {current_time}")
                 
