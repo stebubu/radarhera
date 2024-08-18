@@ -197,21 +197,26 @@ def display_cog_on_map(cog_path):
     try:
         st.write("Rendering map...")
         
-        # Open the COG file
         with rasterio.open(cog_path) as src:
             # Get bounds and CRS
             bounds = src.bounds
             crs = src.crs
             
-            # Debugging: Log the bounds and CRS
+            # Log bounds and CRS
             st.write(f"Bounds: {bounds}")
             st.write(f"CRS: {crs}")
+            
+            # Optional: Check for band descriptions
+            if hasattr(src, 'descriptions') and src.descriptions:
+                st.write(f"Band Descriptions: {src.descriptions}")
+            else:
+                st.write("No band descriptions available.")
             
             # Calculate center
             center = [(bounds.top + bounds.bottom) / 2, (bounds.left + bounds.right) / 2]
             st.write(f"Center: {center}")
             
-            # Create map
+            # Create a map
             m = leafmap.Map(center=center, zoom=10)
             st.write("Map created successfully.")
             
@@ -219,7 +224,7 @@ def display_cog_on_map(cog_path):
             m.add_cog_layer(cog_path, name="COG Layer")
             st.write("COG Layer added to the map.")
             
-            # Display map in Streamlit
+            # Display the map in Streamlit
             m.to_streamlit(height=500)
             st.write("Map rendered successfully.")
             
