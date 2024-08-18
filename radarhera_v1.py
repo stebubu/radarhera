@@ -150,6 +150,8 @@ def fetch_acc_rain_data(start_time, end_time):
 
         # Squeeze out any remaining singleton dimensions
         accumulated_rain = accumulated_rain.squeeze()
+    
+    st.write(f"Accumulated rain shape : {accumulated_rain.shape}")
 
     return accumulated_rain
 
