@@ -102,12 +102,16 @@ def fetch_acc_rain_data(start_time, end_time):
                 # Open the dataset from the temporary file
                 ds = xr.open_dataset(tmp_file_path, engine='netcdf4')
                 
-                # Assuming the rain data is in a variable named 'rainrate'
+                # Assuming the rain data is in a variable named 'rain'
                 if 'rainrate' in ds.variables:
                     rain = ds['rainrate']
+
+                    # Align the datasets before summing
                     if accumulated_rain is None:
-                        accumulated_rain = rain.copy()
+                        accumulated_rain = rain
                     else:
+                        # Align the datasets before performing the sum
+                        accumulated_rain, rain = xr.align(accumulated_rain, rain, join='exact')
                         accumulated_rain += rain
                 else:
                     st.error(f"'rainrate' variable not found in dataset for {current_time}")
