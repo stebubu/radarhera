@@ -196,6 +196,10 @@ import os
 def display_cog_on_map(cog_path, mapbox_token, lat_min, lon_min, lat_max, lon_max):
     try:
         # Check if bounds are provided correctly
+        st.write(f"COG Path: {cog_path}")
+        st.write(f"Mapbox Token: {mapbox_token}")
+        st.write(f"Bounds: [{lat_min}, {lon_min}], [{lat_max}, {lon_max}]")
+
         if not all([lat_min, lon_min, lat_max, lon_max]):
             raise ValueError("Latitude and Longitude bounds must be provided.")
 
