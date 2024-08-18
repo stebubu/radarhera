@@ -72,6 +72,7 @@ start_time = end_time - cumulative_options[cumulative_interval]
 # Fetch data from API
 
 
+# Fetch data from API and accumulate rain data
 def fetch_acc_rain_data(start_time, end_time):
     current_time = start_time
     accumulated_rain = None
@@ -102,7 +103,7 @@ def fetch_acc_rain_data(start_time, end_time):
                 # Open the dataset from the temporary file
                 ds = xr.open_dataset(tmp_file_path, engine='netcdf4')
                 
-                # Assuming the rain data is in a variable named 'rain'
+                # Assuming the rain data is in a variable named 'rainrate'
                 if 'rainrate' in ds.variables:
                     rain = ds['rainrate']
 
@@ -110,9 +111,9 @@ def fetch_acc_rain_data(start_time, end_time):
                     if accumulated_rain is None:
                         accumulated_rain = rain
                     else:
-                        # Align the datasets before performing the sum
-                        accumulated_rain, rain = xr.align(accumulated_rain, rain, join='exact')
-                        accumulated_rain += rain
+                        # Align the datasets using 'outer' join
+                        accumulated_rain, rain = xr.align(accumulated_rain, rain, join='outer')
+                        accumulated_rain = accumulated_rain + rain.fillna(0)
                 else:
                     st.error(f"'rainrate' variable not found in dataset for {current_time}")
                 
