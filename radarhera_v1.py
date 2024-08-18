@@ -152,12 +152,18 @@ def fetch_acc_rain_data(start_time, end_time):
         # Squeeze out any remaining singleton dimensions
         accumulated_rain = accumulated_rain.squeeze()'''
    # Final processing to sum across any remaining dimensions
+
+    # Final processing to sum across the first dimension (7 slices)
     if accumulated_rain is not None:
+        accumulated_rain = accumulated_rain.sum(dim='dim_0')  # Replace 'dim_0' with the actual dimension name if available
+        
+
+    '''if accumulated_rain is not None:
         # Sum across all dimensions except lat and lon
         for dim in accumulated_rain.dims:
             st.write(f"dim: {dim}")
             if dim not in ['lat', 'lon']:
-                accumulated_rain = accumulated_rain.sum(dim=dim)
+                accumulated_rain = accumulated_rain.sum(dim=dim)'''
         
         # Ensure that the result is a 2D array (lat, lon)
         accumulated_rain = accumulated_rain.squeeze()
