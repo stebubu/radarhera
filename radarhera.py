@@ -34,19 +34,18 @@ subset_lon = "Long(12.4,12.9)"
 st.title("Rain Rate Mapping")
 st.sidebar.title("Settings")
 
-# Select the number of minutes to go back
-max_minutes_back = 1440  # Max 24 hours back
+# Time selection widgets
 current_time = datetime.utcnow().replace(second=0, microsecond=0)
-available_times = [current_time - timedelta(minutes=5 * i) for i in range(max_minutes_back // 5)]
+start_of_day = current_time.replace(hour=0, minute=0)
 
-# Slider to select time in the past
-selected_time = st.sidebar.slider(
-    "Select time (UTC)",
-    min_value=available_times[-1],
-    max_value=available_times[0],
-    value=available_times[0],
-    step=timedelta(minutes=5)
-)
+# Hour selection
+selected_hour = st.sidebar.selectbox("Select hour of the day", options=range(24), index=current_time.hour)
+
+# Minute selection in 5-minute increments
+selected_minute = st.sidebar.select_slider("Select minute of the hour", options=list(range(0, 60, 5)), value=current_time.minute - (current_time.minute % 5))
+
+# Combine selected hour and minute into a datetime object
+selected_time = start_of_day + timedelta(hours=selected_hour, minutes=selected_minute)
 
 # Select cumulative interval
 cumulative_options = {
@@ -149,3 +148,4 @@ if rain_data and len(rain_data) > 0:
         ))
 else:
     st.warning("No data available for the selected time and cumulative interval.")
+
