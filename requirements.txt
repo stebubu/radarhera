@@ -12,3 +12,4 @@ folium
 streamlit-folium
 rasterio
 leafmap
+osgeo
