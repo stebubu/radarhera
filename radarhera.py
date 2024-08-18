@@ -122,16 +122,15 @@ def fetch_rain_data_as_geotiff(rain_data):
         # Extract lat, lon, and rainrate
         lat = combined_data.coords['lat'].values
         lon = combined_data.coords['lon'].values
-        rainrate = combined_data['rainrate'].values
+        rainrate = combined_data['rainrate'].squeeze().values  # Remove the single time dimension
 
         # Print shapes for debugging
         st.write(f"Latitude shape: {lat.shape}")
         st.write(f"Longitude shape: {lon.shape}")
         st.write(f"Rainrate shape: {rainrate.shape}")
 
-        # Check if lat, lon, and rainrate have matching dimensions
-        if len(lat.shape) == 1 and len(lon.shape) == 1 and len(rainrate.shape) == 2:
-            lon, lat = np.meshgrid(lon, lat)
+        # Use np.meshgrid to align lat and lon with rainrate
+        lon, lat = np.meshgrid(lon, lat)
 
         # Re-check shapes after meshgrid
         st.write(f"After meshgrid - Latitude shape: {lat.shape}")
@@ -184,5 +183,4 @@ if geotiff_path:
     st.components.v1.html(m._repr_html_(), height=500)
 else:
     st.error("Failed to create GeoTIFF.")
-
 
