@@ -181,6 +181,15 @@ if geotiff_path:
     st.write("GeoTIFF created at:", geotiff_path)
     m = map_geotiff(geotiff_path)
     st.components.v1.html(m._repr_html_(), height=500)
+    
+    # Allow the user to download the GeoTIFF file
+    with open(geotiff_path, "rb") as file:
+        st.download_button(
+            label="Download GeoTIFF",
+            data=file,
+            file_name="rainrate_geotiff.tif",
+            mime="image/tiff"
+        )
 else:
     st.error("Failed to create GeoTIFF.")
 
