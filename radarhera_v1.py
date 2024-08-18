@@ -251,14 +251,6 @@ def inspect_cog(cog_path):
 import streamlit as st
 import rasterio
 import folium
-from folium.plugins import ImageOverlay
-from rasterio.plot import reshape_as_image
-from rasterio.warp import transform_bounds
-from streamlit_folium import folium_static
-
-import streamlit as st
-import rasterio
-import folium
 from rasterio.plot import reshape_as_image
 from rasterio.warp import transform_bounds
 from streamlit_folium import folium_static
@@ -306,6 +298,7 @@ def display_cog_with_folium(cog_path):
     except Exception as e:
         st.error(f"Failed to display COG with Folium: {e}")
         st.write(f"Error details: {str(e)}")
+
 '''
 def display_cog_on_map(cog_path, mapbox_token):
     try:
