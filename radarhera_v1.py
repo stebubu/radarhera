@@ -185,8 +185,8 @@ def fetch_rain_data(start_time, end_time):
 # Convert NetCDF to GeoTIFF
 def fetch_rain_data_as_geotiff(rain_data):
     if rain_data is not None and rain_data.size > 0:
-        #combined_data = rain_data[0]  # Use the single time step data
-        combined_data = rain_data
+        combined_data = rain_data[0]  # Use the single time step data
+        #combined_data = rain_data
         # Extract lat, lon, and rainrate
         lat = combined_data.coords['lat'].values
         lon = combined_data.coords['lon'].values
@@ -241,16 +241,18 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
         st.write(f"Longitude shape: {lon.shape}")
         st.write(f"Rainrate shape: {rainrate.shape}")
 
-        # Use np.meshgrid to align lat and lon with rainrate
-        lon, lat = np.meshgrid(lon, lat)
+        # Check if lat and lon are already 2D (common in many datasets)
+        if lat.ndim == 1 and lon.ndim == 1:
+            # Use np.meshgrid to align lat and lon with rainrate if they are 1D
+            lon, lat = np.meshgrid(lon, lat)
 
-        # Re-check shapes after meshgrid
-        st.write(f"After meshgrid - Latitude shape: {lat.shape}")
-        st.write(f"After meshgrid - Longitude shape: {lon.shape}")
+        # Re-check shapes after ensuring proper alignment
+        st.write(f"After meshgrid/alignment - Latitude shape: {lat.shape}")
+        st.write(f"After meshgrid/alignment - Longitude shape: {lon.shape}")
 
         if lat.shape == lon.shape == rainrate.shape:
             # Calculate geographic transform parameters
-            lon_min, lat_max = np.min(lon), np.max(lat)
+            lon_min, lat_max = lon.min(), lat.max()
             cell_size_lon = (lon.max() - lon.min()) / lon.shape[1]
             cell_size_lat = (lat.max() - lat.min()) / lat.shape[0]
 
