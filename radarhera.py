@@ -163,15 +163,19 @@ def fetch_rain_data_as_geotiff(rain_data):
 
 # Map the GeoTIFF using folium
 def map_geotiff(geotiff_path):
-    m = folium.Map(location=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom_start=10)
-    raster = raster_layers.ImageOverlay(
-        image=geotiff_path,
-        bounds=[[lat_min, lon_min], [lat_max, lon_max]],
-        opacity=0.6
-    )
-    raster.add_to(m)
-    folium.LayerControl().add_to(m)
-    return m
+    try:
+        m = folium.Map(location=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom_start=10)
+        raster = raster_layers.ImageOverlay(
+            image=geotiff_path,
+            bounds=[[lat_min, lon_min], [lat_max, lon_max]],
+            opacity=0.6
+        )
+        raster.add_to(m)
+        folium.LayerControl().add_to(m)
+        return m
+    except Exception as e:
+        st.error(f"Failed to display GeoTIFF on the map: {e}")
+        return None
 
 # Main processing and mapping
 rain_data = fetch_rain_data(start_time, end_time)
@@ -180,7 +184,9 @@ geotiff_path = fetch_rain_data_as_geotiff(rain_data)
 if geotiff_path:
     st.write("GeoTIFF created at:", geotiff_path)
     m = map_geotiff(geotiff_path)
-    st.components.v1.html(m._repr_html_(), height=500)
+    
+    if m:
+        st.components.v1.html(m._repr_html_(), height=500)
     
     # Allow the user to download the GeoTIFF file
     with open(geotiff_path, "rb") as file:
@@ -192,4 +198,3 @@ if geotiff_path:
         )
 else:
     st.error("Failed to create GeoTIFF.")
-
