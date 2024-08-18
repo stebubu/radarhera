@@ -216,5 +216,15 @@ if geotiff_path:
     mapbox_token = st.text_input("Enter your Mapbox token:", type="password")
     if mapbox_token:
         display_cog_on_map(cog_path, mapbox_token)
+            # Allow the user to download the COG file
+    with open(cog_path, "rb") as file:
+        st.download_button(
+            label="Download COG",
+            data=file,
+            file_name="rainrate_cog.tif",
+            mime="image/tiff"
+        )
+else:
+    st.error("Failed to create GeoTIFF.")
 
 
