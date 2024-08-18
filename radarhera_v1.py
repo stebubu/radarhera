@@ -192,31 +192,9 @@ import streamlit as st
 from mapboxgl.viz import RasterTilesViz
 import os
 
-# Function to display COG on Mapbox map
-def display_cog_on_map(cog_url, mapbox_token, lat_min, lat_max, lon_min, lon_max):
-    try:
-        st.write("Rendering map...")
-        
-        # Calculate the center of the map based on bounds
-        center = [(lat_max + lat_min) / 2, (lon_max + lon_min) / 2]
-        
-        # Create a RasterTilesViz object with appropriate parameters
-        viz = RasterTilesViz(
-            access_token=mapbox_token,
-            tiles_url=cog_url,  # Ensure cog_url is an accessible HTTP/S URL
-            tiles_bounds=[[lat_min, lon_min], [lat_max, lon_max]],
-            center=center,
-            zoom=10,
-            style="mapbox://styles/mapbox/light-v10"
-        )
-        
-        # Render the map as an HTML component in Streamlit
-        st.components.v1.html(viz.create_html(), height=500)
-    except Exception as e:
-        st.error(f"Failed to display COG on the map: {e}")
 
 
-'''
+
 def display_cog_on_map(cog_path, mapbox_token):
     try:
         st.write("Rendering map...")
@@ -231,7 +209,7 @@ def display_cog_on_map(cog_path, mapbox_token):
         st.components.v1.html(viz.create_html(), height=500)
     except Exception as e:
         st.error(f"Failed to display COG on the map: {e}")
-'''
+
 # Main processing and mapping
 rain_data = fetch_rain_data(start_time, end_time)
 
