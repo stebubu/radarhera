@@ -3,13 +3,12 @@ import xarray as xr
 import numpy as np
 import rasterio
 from rasterio.transform import from_origin
-import folium
-from folium import raster_layers
 import tempfile
 import requests
 from datetime import datetime, timedelta
 import os
-import base64
+from osgeo import gdal
+import leafmap.foliumap as leafmap
 
 # Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
@@ -162,28 +161,20 @@ def fetch_rain_data_as_geotiff(rain_data):
         st.warning("No data available for the selected time and cumulative interval.")
         return None
 
-# Convert GeoTIFF to Base64
-def geotiff_to_base64(geotiff_path):
-    with open(geotiff_path, "rb") as f:
-        data = f.read()
-    encoded = base64.b64encode(data).decode('utf-8')
-    return f"data:image/tiff;base64,{encoded}"
+# Convert GeoTIFF to Cloud Optimized GeoTIFF (COG)
+def convert_to_cog(geotiff_path):
+    cog_path = geotiff_path.replace(".tif", "_cog.tif")
+    gdal.Translate(cog_path, geotiff_path, options=gdal.TranslateOptions(format="COG"))
+    return cog_path
 
-# Map the GeoTIFF using folium
-def map_geotiff(base64_str):
+# Display COG using leafmap with Mapbox
+def display_cog_on_map(cog_path):
     try:
-        m = folium.Map(location=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom_start=10)
-        raster = raster_layers.ImageOverlay(
-            image=base64_str,
-            bounds=[[lat_min, lon_min], [lat_max, lon_max]],
-            opacity=0.6
-        )
-        raster.add_to(m)
-        folium.LayerControl().add_to(m)
-        return m
+        m = leafmap.Map(center=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom=10)
+        m.add_cog_layer(cog_path, name="Rainrate COG")
+        m.to_streamlit(height=500)
     except Exception as e:
-        st.error(f"Failed to display GeoTIFF on the map: {e}")
-        return None
+        st.error(f"Failed to display COG on the map: {e}")
 
 # Main processing and mapping
 rain_data = fetch_rain_data(start_time, end_time)
@@ -192,22 +183,20 @@ geotiff_path = fetch_rain_data_as_geotiff(rain_data)
 if geotiff_path:
     st.write("GeoTIFF created at:", geotiff_path)
     
-    # Convert the GeoTIFF to a base64 string
-    base64_str = geotiff_to_base64(geotiff_path)
+    # Convert GeoTIFF to COG
+    cog_path = convert_to_cog(geotiff_path)
+    st.write("COG created at:", cog_path)
     
-    # Display the map
-    m = map_geotiff(base64_str)
-    if m:
-        st.components.v1.html(m._repr_html_(), height=500)
+    # Display the COG on a map
+    display_cog_on_map(cog_path)
     
-    # Allow the user to download the GeoTIFF file
-    with open(geotiff_path, "rb") as file:
+    # Allow the user to download the COG file
+    with open(cog_path, "rb") as file:
         st.download_button(
-            label="Download GeoTIFF",
+            label="Download COG",
             data=file,
-            file_name="rainrate_geotiff.tif",
+            file_name="rainrate_cog.tif",
             mime="image/tiff"
         )
 else:
     st.error("Failed to create GeoTIFF.")
-
