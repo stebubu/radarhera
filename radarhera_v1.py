@@ -78,6 +78,8 @@ start_time = end_time - cumulative_options[cumulative_interval]
 # Fetch data from API and accumulate rain data
 def fetch_acc_rain_data(start_time, end_time):
     current_time = start_time
+    st.error(f"'start {start_time}")
+    st.error(f"'end {end_time}")
     accumulated_rain = None
     temp_files = []  # List to keep track of temporary files for later cleanup
     
