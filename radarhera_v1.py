@@ -227,7 +227,27 @@ def display_cog_on_map(cog_path):
         st.error(f"Failed to display COG on the map: {e}")
         st.write(f"Error details: {str(e)}")
 
+def inspect_cog(cog_path):
+    try:
+        st.write("Inspecting COG...")
 
+        with rasterio.open(cog_path) as src:
+            bounds = src.bounds
+            crs = src.crs
+            count = src.count
+
+            st.write(f"Bounds: {bounds}")
+            st.write(f"CRS: {crs}")
+            st.write(f"Number of bands: {count}")
+            
+            # Read the first band just to ensure we can read the data
+            band1 = src.read(1)
+            st.write(f"Shape of Band 1: {band1.shape}")
+            st.write(f"Data Type of Band 1: {band1.dtype}")
+
+    except Exception as e:
+        st.error(f"Failed to inspect COG: {e}")
+        st.write(f"Error details: {str(e)}")
 
 '''
 def display_cog_on_map(cog_path, mapbox_token):
@@ -255,6 +275,7 @@ if geotiff_path:
     # Convert GeoTIFF to COG
     cog_path = convert_to_cog(geotiff_path)
     st.write("COG created at:", cog_path)
+    inspect_cog(cog_path)
     
     # Display the COG on a map using Mapbox GL
     mapbox_token = st.text_input("Enter your Mapbox token:", type="password")
