@@ -248,7 +248,57 @@ def inspect_cog(cog_path):
     except Exception as e:
         st.error(f"Failed to inspect COG: {e}")
         st.write(f"Error details: {str(e)}")
+import streamlit as st
+import rasterio
+import folium
+from folium.plugins import ImageOverlay
+from rasterio.plot import reshape_as_image
+from rasterio.warp import transform_bounds
+from streamlit_folium import folium_static
 
+def display_cog_with_folium(cog_path):
+    try:
+        st.write("Rendering map with Folium...")
+
+        with rasterio.open(cog_path) as src:
+            # Ensure the COG is in EPSG:4326 (WGS 84)
+            bounds = src.bounds
+            crs = src.crs
+            count = src.count
+
+            # Transform bounds to lat/lon
+            lon_min, lat_min, lon_max, lat_max = transform_bounds(crs, 'EPSG:4326', *bounds)
+            st.write(f"Bounds (Lat/Lon): {(lat_min, lon_min), (lat_max, lon_max)}")
+
+            # Read the first band (assuming single-band raster for simplicity)
+            band1 = src.read(1)
+
+            # Reshape as image if needed (for multi-band)
+            if count > 1:
+                image = reshape_as_image(src.read([1, 2, 3]))  # Assuming RGB bands
+            else:
+                image = band1  # For single band, use directly
+
+            # Create a folium map centered on the raster
+            m = folium.Map(location=[(lat_min + lat_max) / 2, (lon_min + lon_max) / 2], zoom_start=10)
+
+            # Add the raster as an image overlay
+            image_overlay = ImageOverlay(
+                image=image,
+                bounds=[[lat_min, lon_min], [lat_max, lon_max]],
+                opacity=0.7,
+                interactive=True,
+                cross_origin=False,
+                zindex=1
+            )
+            image_overlay.add_to(m)
+
+            # Render the map in Streamlit
+            folium_static(m)
+
+    except Exception as e:
+        st.error(f"Failed to display COG with Folium: {e}")
+        st.write(f"Error details: {str(e)}")
 '''
 def display_cog_on_map(cog_path, mapbox_token):
     try:
@@ -277,8 +327,8 @@ if geotiff_path:
     st.write("COG created at:", cog_path)
     inspect_cog(cog_path)
     
-   
-    display_cog_on_map(cog_path)
+    display_cog_with_folium(cog_path)
+    #display_cog_on_map(cog_path)
             # Allow the user to download the COG file
     with open(cog_path, "rb") as file:
         st.download_button(
