@@ -147,11 +147,11 @@ def fetch_rain_data_as_geotiff(rain_data):
                     height=rainrate.shape[0],
                     width=rainrate.shape[1],
                     count=1,
-                    dtype=rainrate.float32,  # Make sure the data type is appropriate
+                    dtype=rasterio.float32,  # Correctly use the rasterio data type
                     crs='EPSG:4326',
                     transform=transform,
                 ) as dst:
-                    dst.write(rainrate, 1)
+                    dst.write(rainrate.astype(rasterio.float32), 1)
                     dst.set_band_description(1, "Rain Rate")
                 geotiff_path = tmp_file.name
                 return geotiff_path
