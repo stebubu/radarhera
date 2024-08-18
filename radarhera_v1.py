@@ -231,22 +231,27 @@ def fetch_rain_data_as_geotiff(rain_data):
 
 def convert_accumulated_rain_to_geotiff(accumulated_rain):
     if accumulated_rain is not None and accumulated_rain.size > 0:
-        # Extract lat, lon, and rainrate from the accumulated rain DataArray
+        # Handle potential extra dimensions in rainrate
+        rainrate = accumulated_rain.squeeze().values  # Remove any singleton dimensions
+
+        # If rainrate still has more than 2 dimensions, select the first slice
+        if rainrate.ndim > 2:
+            st.warning(f"Rainrate has {rainrate.shape[0]} slices, selecting the first one.")
+            rainrate = rainrate[0, :, :]
+
+        # Extract lat, lon from the accumulated rain DataArray
         lat = accumulated_rain.coords['lat'].values
         lon = accumulated_rain.coords['lon'].values
-        rainrate = accumulated_rain.squeeze().values  # Remove any singleton dimensions
 
         # Print shapes for debugging
         st.write(f"Latitude shape: {lat.shape}")
         st.write(f"Longitude shape: {lon.shape}")
         st.write(f"Rainrate shape: {rainrate.shape}")
 
-        # Check if lat and lon are already 2D (common in many datasets)
-        if lat.ndim == 1 and lon.ndim == 1:
-            # Use np.meshgrid to align lat and lon with rainrate if they are 1D
-            lon, lat = np.meshgrid(lon, lat)
+        # Use np.meshgrid to align lat and lon with rainrate
+        lon, lat = np.meshgrid(lon, lat)
 
-        # Re-check shapes after ensuring proper alignment
+        # Re-check shapes after meshgrid/alignment
         st.write(f"After meshgrid/alignment - Latitude shape: {lat.shape}")
         st.write(f"After meshgrid/alignment - Longitude shape: {lon.shape}")
 
