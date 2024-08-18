@@ -117,10 +117,19 @@ if rain_data and len(rain_data) > 0:
         lon = combined_data.coords['lon'].values
         rainrate = combined_data['rainrate'].values
 
+        # Print out shapes for debugging
+        st.write(f"lat shape: {lat.shape}")
+        st.write(f"lon shape: {lon.shape}")
+        st.write(f"rainrate shape: {rainrate.shape}")
+
         # Ensure that lat, lon, and rainrate are 2D and have the same shape
         if len(lat.shape) == 1 and len(lon.shape) == 1 and len(rainrate.shape) == 2:
             lon, lat = np.meshgrid(lon, lat)
         
+        # Re-check the shapes after alignment
+        st.write(f"After meshgrid - lat shape: {lat.shape}")
+        st.write(f"After meshgrid - lon shape: {lon.shape}")
+
         if lat.shape == lon.shape == rainrate.shape:
             # Flatten the arrays for plotting
             df = pd.DataFrame({
