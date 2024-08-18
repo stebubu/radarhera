@@ -229,6 +229,55 @@ def fetch_rain_data_as_geotiff(rain_data):
         st.warning("No data available for the selected time and cumulative interval.")
         return None
 
+def convert_accumulated_rain_to_geotiff(accumulated_rain):
+    if accumulated_rain is not None and accumulated_rain.size > 0:
+        # Extract lat, lon, and rainrate from the accumulated rain DataArray
+        lat = accumulated_rain.coords['lat'].values
+        lon = accumulated_rain.coords['lon'].values
+        rainrate = accumulated_rain.squeeze().values  # Remove any singleton dimensions
+
+        # Print shapes for debugging
+        st.write(f"Latitude shape: {lat.shape}")
+        st.write(f"Longitude shape: {lon.shape}")
+        st.write(f"Rainrate shape: {rainrate.shape}")
+
+        # Use np.meshgrid to align lat and lon with rainrate
+        lon, lat = np.meshgrid(lon, lat)
+
+        # Re-check shapes after meshgrid
+        st.write(f"After meshgrid - Latitude shape: {lat.shape}")
+        st.write(f"After meshgrid - Longitude shape: {lon.shape}")
+
+        if lat.shape == lon.shape == rainrate.shape:
+            # Calculate geographic transform parameters
+            lon_min, lat_max = np.min(lon), np.max(lat)
+            cell_size_lon = (lon.max() - lon.min()) / lon.shape[1]
+            cell_size_lat = (lat.max() - lat.min()) / lat.shape[0]
+
+            # Create the GeoTIFF using rasterio
+            transform = from_origin(lon_min, lat_max, cell_size_lon, abs(cell_size_lat))
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.tif') as tmp_file:
+                with rasterio.open(
+                    tmp_file.name,
+                    'w',
+                    driver='GTiff',
+                    height=rainrate.shape[0],
+                    width=rainrate.shape[1],
+                    count=1,
+                    dtype=rasterio.float32,  # Correctly use the rasterio data type
+                    crs='EPSG:4326',
+                    transform=transform,
+                ) as dst:
+                    dst.write(rainrate.astype(rasterio.float32), 1)
+                geotiff_path = tmp_file.name
+                return geotiff_path
+        else:
+            st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
+            return None
+    else:
+        st.warning("No data available for the selected time and cumulative interval.")
+        return None
+
 # Convert GeoTIFF to Cloud Optimized GeoTIFF (COG)
 def convert_to_cog(geotiff_path):
     cog_path = geotiff_path.replace(".tif", "_cog.tif")
@@ -383,7 +432,9 @@ def display_cog_on_map(cog_path, mapbox_token):
 # Main processing and mapping
 #rain_data = fetch_rain_data(start_time, end_time)
 rain_data = fetch_acc_rain_data(start_time, end_time)
-geotiff_path = fetch_rain_data_as_geotiff(rain_data)
+#geotiff_path = fetch_rain_data_as_geotiff(rain_data)
+
+geotiff_path =convert_accumulated_rain_to_geotiff(rain_data)
 if geotiff_path:
     st.write("GeoTIFF created at:", geotiff_path)
     
