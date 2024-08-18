@@ -6,6 +6,7 @@ import xarray as xr
 import numpy as np
 import pydeck as pdk
 import pandas as pd
+import tempfile
 
 # Set up the API authentication
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
@@ -61,10 +62,6 @@ end_time = selected_time
 start_time = end_time - cumulative_options[cumulative_interval]
 
 # Fetch data from API
-import tempfile
-import xarray as xr
-import streamlit as st
-
 def fetch_rain_data(start_time, end_time):
     current_time = start_time
     rain_data = []
@@ -106,8 +103,10 @@ def fetch_rain_data(start_time, end_time):
     
     return rain_data
 
-# Process and visualize the data
-if rain_data:
+rain_data = fetch_rain_data(start_time, end_time)
+
+# Check if rain_data is not None and not empty
+if rain_data and len(rain_data) > 0:
     if cumulative_interval != "No Cumulative":
         # Combine data if necessary, for cumulative sum
         combined_data = xr.concat(rain_data, dim='time').sum(dim='time')
