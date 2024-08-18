@@ -111,44 +111,48 @@ if rain_data and len(rain_data) > 0:
     else:
         combined_data = rain_data[0]  # Use the single time step data
 
-    # Ensure dimensions are aligned and consistent
-    lat = combined_data['lat'].values
-    lon = combined_data['lon'].values
-    rainrate = combined_data['rainrate'].values
+    # Extract and align lat, lon, and rainrate
+    try:
+        lat = combined_data.coords['lat'].values
+        lon = combined_data.coords['lon'].values
+        rainrate = combined_data['rainrate'].values
 
-    # Flatten the arrays and ensure they have the same length
-    if len(lat.shape) == 2 and len(lon.shape) == 2 and len(rainrate.shape) == 2:
-        lat = lat.flatten()
-        lon = lon.flatten()
-        rainrate = rainrate.flatten()
+        # Ensure that lat, lon, and rainrate are 2D and have the same shape
+        if len(lat.shape) == 1 and len(lon.shape) == 1 and len(rainrate.shape) == 2:
+            lon, lat = np.meshgrid(lon, lat)
+        
+        if lat.shape == lon.shape == rainrate.shape:
+            # Flatten the arrays for plotting
+            df = pd.DataFrame({
+                'lat': lat.flatten(),
+                'lon': lon.flatten(),
+                'rainrate': rainrate.flatten()
+            })
 
-        df = pd.DataFrame({
-            'lat': lat,
-            'lon': lon,
-            'rainrate': rainrate
-        })
-
-        st.pydeck_chart(pdk.Deck(
-            map_style='mapbox://styles/mapbox/light-v9',
-            initial_view_state=pdk.ViewState(
-                latitude=np.mean(lat),
-                longitude=np.mean(lon),
-                zoom=8,
-                pitch=50,
-            ),
-            layers=[
-                pdk.Layer(
-                    'ScatterplotLayer',
-                    data=df,
-                    get_position='[lon, lat]',
-                    get_color='[200, 30, 0, 160]',
-                    get_radius='rainrate * 100',
-                    pickable=True,
+            st.pydeck_chart(pdk.Deck(
+                map_style='mapbox://styles/mapbox/light-v9',
+                initial_view_state=pdk.ViewState(
+                    latitude=np.mean(lat),
+                    longitude=np.mean(lon),
+                    zoom=8,
+                    pitch=50,
                 ),
-            ],
-        ))
-    else:
-        st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
+                layers=[
+                    pdk.Layer(
+                        'ScatterplotLayer',
+                        data=df,
+                        get_position='[lon, lat]',
+                        get_color='[200, 30, 0, 160]',
+                        get_radius='rainrate * 100',
+                        pickable=True,
+                    ),
+                ],
+            ))
+        else:
+            st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
+    except KeyError as e:
+        st.error(f"Missing expected data in the dataset: {e}")
 else:
     st.warning("No data available for the selected time and cumulative interval.")
+
 
