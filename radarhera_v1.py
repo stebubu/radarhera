@@ -70,6 +70,66 @@ end_time = selected_time
 start_time = end_time - cumulative_options[cumulative_interval]
 
 # Fetch data from API
+
+
+def fetch_acc_rain_data(start_time, end_time):
+    current_time = start_time
+    accumulated_rain = None
+    temp_files = []  # List to keep track of temporary files for later cleanup
+    
+    while current_time <= end_time:
+        subset_time = f'time("{current_time.isoformat(timespec="milliseconds")}Z")'
+
+        params = {
+            "request": request_type,
+            "service": service,
+            "version": version,
+            "coverageId": coverage_id,
+            "format": format_type,
+            "subset": [subset_lon, subset_lat, subset_time]
+        }
+
+        response = requests.get(base_url, headers=headers, params=params)
+        
+        if response.status_code == 200:
+            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.nc')
+            tmp_file.write(response.content)
+            tmp_file_path = tmp_file.name
+            tmp_file.close()
+            temp_files.append(tmp_file_path)
+
+            try:
+                # Open the dataset from the temporary file
+                ds = xr.open_dataset(tmp_file_path, engine='netcdf4')
+                
+                # Assuming the rain data is in a variable named 'rain'
+                if 'rain' in ds.variables:
+                    rain = ds['rain']
+                    if accumulated_rain is None:
+                        accumulated_rain = rain.copy()
+                    else:
+                        accumulated_rain += rain
+                else:
+                    st.error(f"'rain' variable not found in dataset for {current_time}")
+                
+            except Exception as e:
+                st.error(f"Failed to open dataset: {e}")
+        else:
+            st.error(f"Error fetching data for {current_time}: {response.text}")
+            break
+        
+        current_time += timedelta(minutes=5)
+    
+    # Clean up temporary files
+    for file_path in temp_files:
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            st.error(f"Failed to remove temporary file: {file_path}. Error: {e}")
+    
+    return accumulated_rain
+
+
 def fetch_rain_data(start_time, end_time):
     current_time = start_time
     rain_data = []
@@ -316,8 +376,8 @@ def display_cog_on_map(cog_path, mapbox_token):
         st.error(f"Failed to display COG on the map: {e}")
 '''
 # Main processing and mapping
-rain_data = fetch_rain_data(start_time, end_time)
-
+#rain_data = fetch_rain_data(start_time, end_time)
+rain_data = fetch_acc_rain_data(start_time, end_time)
 geotiff_path = fetch_rain_data_as_geotiff(rain_data)
 if geotiff_path:
     st.write("GeoTIFF created at:", geotiff_path)
