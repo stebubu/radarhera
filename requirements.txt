@@ -13,3 +13,4 @@ streamlit-folium
 rasterio
 leafmap
 rio-cogeo
+mapboxgl
