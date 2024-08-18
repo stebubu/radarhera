@@ -164,7 +164,7 @@ def fetch_acc_rain_data(start_time, end_time):
         
     
     st.write(f"Accumulated rain shape : {accumulated_rain.shape}")
-
+    st.write(f"somma finale: {accumulated_rain.sum()}")
     return accumulated_rain
 
 
