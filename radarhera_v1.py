@@ -127,6 +127,7 @@ def fetch_acc_rain_data(start_time, end_time):
     
     # Clean up temporary files
     for file_path in temp_files:
+        st.error(f"Cleaning: {file_path}")
         try:
             os.remove(file_path)
         except Exception as e:
