@@ -163,8 +163,6 @@ def fetch_acc_rain_data(start_time, end_time):
                 accumulated_rain = accumulated_rain.sum(dim=dim)
                 '''
         
-        # Ensure that the result is a 2D array (lat, lon)
-        accumulated_rain = accumulated_rain.squeeze()
         
     
     st.write(f"Accumulated rain shape : {accumulated_rain.shape}")
