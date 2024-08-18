@@ -184,9 +184,9 @@ def fetch_rain_data(start_time, end_time):
 
 # Convert NetCDF to GeoTIFF
 def fetch_rain_data_as_geotiff(rain_data):
-    if rain_data and len(rain_data) > 0:
-        combined_data = rain_data[0]  # Use the single time step data
-
+    if rain_data is not None and rain_data.size > 0:
+        #combined_data = rain_data[0]  # Use the single time step data
+        combined_data = rain_data
         # Extract lat, lon, and rainrate
         lat = combined_data.coords['lat'].values
         lon = combined_data.coords['lon'].values
