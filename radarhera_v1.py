@@ -192,6 +192,7 @@ import streamlit as st
 from mapboxgl.viz import RasterTilesViz
 import os
 
+# Function to display COG on Mapbox map
 def display_cog_on_map(cog_url, mapbox_token, lat_min, lat_max, lon_min, lon_max):
     try:
         st.write("Rendering map...")
@@ -213,6 +214,7 @@ def display_cog_on_map(cog_url, mapbox_token, lat_min, lat_max, lon_min, lon_max
         st.components.v1.html(viz.create_html(), height=500)
     except Exception as e:
         st.error(f"Failed to display COG on the map: {e}")
+
 
 '''
 def display_cog_on_map(cog_path, mapbox_token):
