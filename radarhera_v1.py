@@ -195,13 +195,38 @@ import os
 
 def display_cog_on_map(cog_path):
     try:
+        st.write("Rendering map...")
+        
+        # Open the COG file
         with rasterio.open(cog_path) as src:
+            # Get bounds and CRS
             bounds = src.bounds
             crs = src.crs
+            
+            # Debugging: Log the bounds and CRS
             st.write(f"Bounds: {bounds}")
             st.write(f"CRS: {crs}")
+            
+            # Calculate center
+            center = [(bounds.top + bounds.bottom) / 2, (bounds.left + bounds.right) / 2]
+            st.write(f"Center: {center}")
+            
+            # Create map
+            m = leafmap.Map(center=center, zoom=10)
+            st.write("Map created successfully.")
+            
+            # Add the COG layer
+            m.add_cog_layer(cog_path, name="COG Layer")
+            st.write("COG Layer added to the map.")
+            
+            # Display map in Streamlit
+            m.to_streamlit(height=500)
+            st.write("Map rendered successfully.")
+            
     except Exception as e:
-        st.error(f"Failed to read COG: {e}")
+        st.error(f"Failed to display COG on the map: {e}")
+        st.write(f"Error details: {str(e)}")
+
 
 '''
 def display_cog_on_map(cog_path, mapbox_token):
