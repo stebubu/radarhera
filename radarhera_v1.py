@@ -147,11 +147,12 @@ def fetch_rain_data_as_geotiff(rain_data):
                     height=rainrate.shape[0],
                     width=rainrate.shape[1],
                     count=1,
-                    dtype=rainrate.dtype,
+                    dtype=rainrate.float32,  # Make sure the data type is appropriate
                     crs='EPSG:4326',
                     transform=transform,
                 ) as dst:
                     dst.write(rainrate, 1)
+                    dst.set_band_description(1, "Rain Rate")
                 geotiff_path = tmp_file.name
                 return geotiff_path
         else:
@@ -178,7 +179,9 @@ def convert_to_cog(geotiff_path):
         )
         with rasterio.open(cog_path, "w", **profile) as dst:
             for i in range(1, src.count + 1):
-                dst.write(src.read(i, resampling=Resampling.nearest), indexes=i)
+                data = src.read(i, resampling=Resampling.nearest)
+                dst.write(data, indexes=i)
+                dst.set_band_description(i, src.descriptions[i-1] if src.descriptions[i-1] else "Band {}".format(i))
     return cog_path
 
 # Display COG using leafmap with Mapbox
@@ -214,3 +217,4 @@ if geotiff_path:
         )
 else:
     st.error("Failed to create GeoTIFF.")
+
