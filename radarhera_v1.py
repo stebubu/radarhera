@@ -102,15 +102,15 @@ def fetch_acc_rain_data(start_time, end_time):
                 # Open the dataset from the temporary file
                 ds = xr.open_dataset(tmp_file_path, engine='netcdf4')
                 
-                # Assuming the rain data is in a variable named 'rain'
-                if 'rain' in ds.variables:
-                    rain = ds['rain']
+                # Assuming the rain data is in a variable named 'rainrate'
+                if 'rainrate' in ds.variables:
+                    rain = ds['rainrate']
                     if accumulated_rain is None:
                         accumulated_rain = rain.copy()
                     else:
                         accumulated_rain += rain
                 else:
-                    st.error(f"'rain' variable not found in dataset for {current_time}")
+                    st.error(f"'rainrate' variable not found in dataset for {current_time}")
                 
             except Exception as e:
                 st.error(f"Failed to open dataset: {e}")
