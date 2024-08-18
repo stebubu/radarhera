@@ -8,7 +8,8 @@ import tempfile
 import requests
 from datetime import datetime, timedelta
 import os
-import leafmap.foliumap as leafmap
+import folium
+from folium import raster_layers
 
 # Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
@@ -152,7 +153,6 @@ def fetch_rain_data_as_geotiff(rain_data):
                     transform=transform,
                 ) as dst:
                     dst.write(rainrate.astype(rasterio.float32), 1)
-                    dst.set_band_description(1, "Rain Rate")
                 geotiff_path = tmp_file.name
                 return geotiff_path
         else:
@@ -181,15 +181,20 @@ def convert_to_cog(geotiff_path):
             for i in range(1, src.count + 1):
                 data = src.read(i, resampling=Resampling.nearest)
                 dst.write(data, indexes=i)
-                dst.set_band_description(i, src.descriptions[i-1] if src.descriptions[i-1] else "Band {}".format(i))
     return cog_path
 
-# Display COG using leafmap with Mapbox
+# Display COG using folium with ImageOverlay
 def display_cog_on_map(cog_path):
     try:
-        m = leafmap.Map(center=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom=10)
-        m.add_cog_layer(cog_path, name="Rainrate COG")
-        m.to_streamlit(height=500)
+        m = folium.Map(location=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2], zoom_start=10)
+        raster = raster_layers.ImageOverlay(
+            image=cog_path,
+            bounds=[[lat_min, lon_min], [lat_max, lon_max]],
+            opacity=0.6
+        )
+        raster.add_to(m)
+        folium.LayerControl().add_to(m)
+        st.components.v1.html(m._repr_html_(), height=500)
     except Exception as e:
         st.error(f"Failed to display COG on the map: {e}")
 
@@ -204,7 +209,7 @@ if geotiff_path:
     cog_path = convert_to_cog(geotiff_path)
     st.write("COG created at:", cog_path)
     
-    # Display the COG on a map
+    # Display the COG on a map using folium
     display_cog_on_map(cog_path)
     
     # Allow the user to download the COG file
