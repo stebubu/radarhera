@@ -233,7 +233,7 @@ if geotiff_path:
     # Display the COG on a map using Mapbox GL
     mapbox_token = st.text_input("Enter your Mapbox token:", type="password")
     if mapbox_token:
-        display_cog_on_map(cog_path, mapbox_token)
+        display_cog_on_map(cog_path)
             # Allow the user to download the COG file
     with open(cog_path, "rb") as file:
         st.download_button(
