@@ -116,21 +116,21 @@ def fetch_acc_rain_data(start_time, end_time):
                     # Align the datasets before summing
                     if accumulated_rain is None:
                         accumulated_rain = rain
-                        st.write(f"Current time: {current_time}")
-                        st.write(f"Rainrate shape: {rain.shape}")
-                        st.write(f"Rainrate sum: {rain.sum()}")
-                        st.write(f"Accumulated rain dimensions: {accumulated_rain.dims}")
-                        st.write(f"Accumulated rain shape before sum: {accumulated_rain.shape}")
+                        #st.write(f"Current time: {current_time}")
+                        #st.write(f"Rainrate shape: {rain.shape}")
+                        #st.write(f"Rainrate sum: {rain.sum()}")
+                        #st.write(f"Accumulated rain dimensions: {accumulated_rain.dims}")
+                        #st.write(f"Accumulated rain shape before sum: {accumulated_rain.shape}")
 
                     else:
                         # Align the datasets using 'outer' join
                         accumulated_rain, rain = xr.align(accumulated_rain, rain, join='outer')
                         accumulated_rain = accumulated_rain + rain.fillna(0)
-                        st.write(f"Current time: {current_time}")
-                        st.write(f"Rainrate shape: {rain.shape}")
-                        st.write(f"Rainrate sum: {rain.sum()}")
-                        st.write(f"Accumulated rain dimensions: {accumulated_rain.dims}")
-                        st.write(f"Accumulated rain shape before sum: {accumulated_rain.shape}")
+                        #st.write(f"Current time: {current_time}")
+                        #st.write(f"Rainrate shape: {rain.shape}")
+                        #st.write(f"Rainrate sum: {rain.sum()}")
+                        #st.write(f"Accumulated rain dimensions: {accumulated_rain.dims}")
+                        #st.write(f"Accumulated rain shape before sum: {accumulated_rain.shape}")
 
                 else:
                     st.error(f"'rainrate' variable not found in dataset for {current_time}")
@@ -144,136 +144,30 @@ def fetch_acc_rain_data(start_time, end_time):
         current_time += timedelta(minutes=5)
     
     # Clean up temporary files
-    '''for file_path in temp_files:
+    for file_path in temp_files:
         st.error(f"Cleaning: {file_path}")
         try:
             os.remove(file_path)
         except Exception as e:
-            st.error(f"Failed to remove temporary file: {file_path}. Error: {e}")'''
+            st.error(f"Failed to remove temporary file: {file_path}. Error: {e}")
     # Final processing to sum across the first dimension (7 slices)
     if accumulated_rain is not None:
         #accumulated_rain = accumulated_rain.sum(dim='time')  # Replace 'dim_0' with the actual dimension name if available
-        st.write(f"Accumulated rain dimensions before squeeze: {accumulated_rain.dims}")
-        st.write(f"Accumulated rain shape before squeeze: {accumulated_rain.shape}")
+        #st.write(f"Accumulated rain dimensions before squeeze: {accumulated_rain.dims}")
+        #st.write(f"Accumulated rain shape before squeeze: {accumulated_rain.shape}")
         # Ensure that the result is a 2D array (lat, lon)
         #accumulated_rain = accumulated_rain.squeeze()
-        st.write(f"somma finale: {accumulated_rain.sum()}")
+        #st.write(f"somma finale: {accumulated_rain.sum()}")
         
         # Perform vertical flip
         accumulated_rain = accumulated_rain[::-1, :]  # Flip vertically along the first dimension (latitude)
 
 
-    return accumulated_rain, tmp_file_path            
+    return accumulated_rain#, tmp_file_path            
      
-    '''# Final processing to ensure a single 2D array
-    if accumulated_rain is not None:
-        # Sum over the time dimension if it exists
-        if 'time' in accumulated_rain.dims:
-            accumulated_rain = accumulated_rain.sum(dim='time')
-
-        # Squeeze out any remaining singleton dimensions
-        accumulated_rain = accumulated_rain.squeeze()
-    # Final processing to sum across any remaining dimensions
     
-        st.write(f"Accumulated rain shape : {accumulated_rain.shape}")
-        st.write(f"somma finale: {accumulated_rain.sum()}")
-    return accumulated_rain'''
 
 
-def fetch_rain_data(start_time, end_time):
-    current_time = start_time
-    rain_data = []
-    temp_files = []  # List to keep track of temporary files for later cleanup
-    
-    while current_time <= end_time:
-        subset_time = f'time("{current_time.isoformat(timespec="milliseconds")}Z")'
-
-        params = {
-            "request": request_type,
-            "service": service,
-            "version": version,
-            "coverageId": coverage_id,
-            "format": format_type,
-            "subset": [subset_lon, subset_lat, subset_time]
-        }
-
-        response = requests.get(base_url, headers=headers, params=params)
-        
-        if response.status_code == 200:
-            tmp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.nc')
-            tmp_file.write(response.content)
-            tmp_file_path = tmp_file.name
-            tmp_file.close()
-            temp_files.append(tmp_file_path)
-
-            try:
-                # Open the dataset from the temporary file
-                ds = xr.open_dataset(tmp_file_path, engine='netcdf4')
-                rain_data.append(ds)
-            except Exception as e:
-                st.error(f"Failed to open dataset: {e}")
-        else:
-            st.error(f"Error fetching data for {current_time}: {response.text}")
-            break
-        
-        current_time += timedelta(minutes=5)
-    
-    # Clean up temporary files
-    for file_path in temp_files:
-        
-        try:
-            os.remove(file_path)
-        except Exception as e:
-            st.error(f"Failed to remove temporary file: {file_path}. Error: {e}")
-    
-    return rain_data
-
-# Convert NetCDF to GeoTIFF
-def fetch_rain_data_as_geotiff(rain_data):
-    if rain_data is not None and rain_data.size > 0:
-        combined_data = rain_data[0]  # Use the single time step data
-        #combined_data = rain_data
-        # Extract lat, lon, and rainrate
-        lat = combined_data.coords['lat'].values
-        lon = combined_data.coords['lon'].values
-        rainrate = combined_data['rainrate'].squeeze().values  # Remove the single time dimension
-
-        # Print shapes for debugging
-        st.write(f"Latitude shape: {lat.shape}")
-        st.write(f"Longitude shape: {lon.shape}")
-        st.write(f"Rainrate shape: {rainrate.shape}")
-
-        # Use np.meshgrid to align lat and lon with rainrate
-        lon, lat = np.meshgrid(lon, lat)
-
-        # Re-check shapes after meshgrid
-        st.write(f"After meshgrid - Latitude shape: {lat.shape}")
-        st.write(f"After meshgrid - Longitude shape: {lon.shape}")
-
-        if lat.shape == lon.shape == rainrate.shape:
-            # Create the GeoTIFF using rasterio
-            transform = from_origin(lon_min, lat_max, cell_size_lon, abs(cell_size_lat))
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.tif') as tmp_file:
-                with rasterio.open(
-                    tmp_file.name,
-                    'w',
-                    driver='GTiff',
-                    height=rainrate.shape[0],
-                    width=rainrate.shape[1],
-                    count=1,
-                    dtype=rasterio.float32,  # Correctly use the rasterio data type
-                    crs='EPSG:4326',
-                    transform=transform,
-                ) as dst:
-                    dst.write(rainrate.astype(rasterio.float32), 1)
-                geotiff_path = tmp_file.name
-                return geotiff_path
-        else:
-            st.error("Mismatch in array dimensions: lat, lon, and rainrate must have the same shape.")
-            return None
-    else:
-        st.warning("No data available for the selected time and cumulative interval.")
-        return None
 
 def convert_accumulated_rain_to_geotiff(accumulated_rain):
     if accumulated_rain is not None and accumulated_rain.size > 0:
@@ -367,39 +261,7 @@ from mapboxgl.viz import RasterTilesViz
 import os
 
 
-def display_cog_on_map(cog_path):
-    try:
-        st.write("Rendering map...")
-        
-        # Open the COG file
-        with rasterio.open(cog_path) as src:
-            # Get bounds and CRS
-            bounds = src.bounds
-            crs = src.crs
-            
-            # Log bounds and CRS
-            st.write(f"Bounds: {bounds}")
-            st.write(f"CRS: {crs}")
-            
-            # Calculate center of the raster
-            center = [(bounds.top + bounds.bottom) / 2, (bounds.left + bounds.right) / 2]
-            st.write(f"Center: {center}")
-            
-            # Create a map centered on the raster
-            m = leafmap.Map(center=center, zoom=10)
-            st.write("Map created successfully.")
-            
-            # Add the COG layer to the map
-            m.add_cog_layer(cog_path, name="COG Layer")
-            st.write("COG Layer added to the map.")
-            
-            # Display the map in Streamlit
-            m.to_streamlit(height=500)
-            st.write("Map rendered successfully.")
-            
-    except Exception as e:
-        st.error(f"Failed to display COG on the map: {e}")
-        st.write(f"Error details: {str(e)}")
+
 
 def inspect_cog(cog_path):
     try:
@@ -506,22 +368,7 @@ def display_cog_with_folium(cog_path):
         st.error(f"Failed to display COG with Folium: {e}")
         st.write(f"Error details: {str(e)}")
 
-'''
-def display_cog_on_map(cog_path, mapbox_token):
-    try:
-        st.write("Rendering map...")
-        viz = RasterTilesViz(
-            access_token=mapbox_token,
-            tiles_url=cog_path,
-            tiles_bounds=[[lat_min, lon_min], [lat_max, lon_max]],
-            center=[(lat_max + lat_min) / 2, (lon_max + lon_min) / 2],
-            zoom=10,
-            style="mapbox://styles/mapbox/light-v10"
-        )
-        st.components.v1.html(viz.create_html(), height=500)
-    except Exception as e:
-        st.error(f"Failed to display COG on the map: {e}")
-'''
+
 # Main processing and mapping
 #rain_data = fetch_rain_data(start_time, end_time)
 rain_data, tmp_file_path = fetch_acc_rain_data(start_time, end_time)
@@ -548,20 +395,7 @@ if geotiff_path:
             file_name="rainrate_cog.tif",
             mime="image/tiff"
         )
-    with open(tmp_file_path, "rb") as file:
-        st.download_button(
-            label="Download NC",
-            data=file,
-            file_name="rainrate.nc",
-            #mime="image/tiff"
-        )
-    with open(geotiff_path, "rb") as file:
-        st.download_button(
-            label="Download TIFF",
-            data=file,
-            file_name="rainrate.tiff",
-            mime="image/tiff"
-        )
+    
 else:
     st.error("Failed to create GeoTIFF.")
 
