@@ -149,7 +149,7 @@ def fetch_acc_rain_data(start_time, end_time):
         st.write(f"Accumulated rain dimensions before squeeze: {accumulated_rain.dims}")
         st.write(f"Accumulated rain shape before squeeze: {accumulated_rain.shape}")
         # Ensure that the result is a 2D array (lat, lon)
-        accumulated_rain = accumulated_rain.squeeze()
+        #accumulated_rain = accumulated_rain.squeeze()
         st.write(f"somma finale: {accumulated_rain.sum()}")
         
         # Perform vertical flip
