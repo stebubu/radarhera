@@ -528,6 +528,13 @@ if geotiff_path:
             file_name="rainrate.nc",
             #mime="image/tiff"
         )
+    with open(geotiff_path, "rb") as file:
+        st.download_button(
+            label="Download TIFF",
+            data=file,
+            file_name="rainrate.tiff",
+            mime="image/tiff"
+        )
 else:
     st.error("Failed to create GeoTIFF.")
 
