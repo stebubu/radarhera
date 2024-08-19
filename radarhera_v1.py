@@ -58,7 +58,7 @@ st.sidebar.title("Settings")
 selected_date = st.sidebar.date_input("Select date", datetime.utcnow().date())
 
 # Hour selection
-selected_hour = st.sidebar.selectbox("Select hour of the day", options=range(24), index=datetime.utcnow().hour)
+selected_hour = st.sidebar.selectbox("Select hour of the day in UTC Time ZONE", options=range(24), index=datetime.utcnow().hour)
 
 # Minute selection in 5-minute increments
 selected_minute = st.sidebar.select_slider("Select minute of the hour", options=list(range(0, 60, 5)), value=(datetime.utcnow().minute // 5) * 5)
