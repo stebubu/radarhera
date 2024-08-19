@@ -272,14 +272,14 @@ def inspect_cog(cog_path):
             crs = src.crs
             count = src.count
 
-            st.write(f"Bounds: {bounds}")
-            st.write(f"CRS: {crs}")
-            st.write(f"Number of bands: {count}")
+            #st.write(f"Bounds: {bounds}")
+            #st.write(f"CRS: {crs}")
+            #st.write(f"Number of bands: {count}")
             
             # Read the first band just to ensure we can read the data
             band1 = src.read(1)
-            st.write(f"Shape of Band 1: {band1.shape}")
-            st.write(f"Data Type of Band 1: {band1.dtype}")
+            #st.write(f"Shape of Band 1: {band1.shape}")
+            #st.write(f"Data Type of Band 1: {band1.dtype}")
 
     except Exception as e:
         st.error(f"Failed to inspect COG: {e}")
@@ -303,7 +303,7 @@ def display_cog_with_folium(cog_path):
 
             # Transform bounds to lat/lon
             lon_min, lat_min, lon_max, lat_max = bounds
-            st.write(f"Bounds (Lat/Lon): {(lat_min, lon_min), (lat_max, lon_max)}")
+            #st.write(f"Bounds (Lat/Lon): {(lat_min, lon_min), (lat_max, lon_max)}")
 
             # Read the first band (assuming single-band raster for simplicity)
             band1 = src.read(1)
