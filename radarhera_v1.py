@@ -149,6 +149,9 @@ def fetch_acc_rain_data(start_time, end_time):
         # Ensure that the result is a 2D array (lat, lon)
         accumulated_rain = accumulated_rain.squeeze()
         st.write(f"somma finale: {accumulated_rain.sum()}")
+        # Perform vertical flip
+        accumulated_rain = accumulated_rain[::-1, :]  # Flip vertically along the first dimension (latitude)
+
 
     return accumulated_rain, tmp_file_path            
      
