@@ -290,8 +290,8 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
 
         if lat.shape == lon.shape == rainrate.shape:
             # Calculate geographic transform parameters
-            #lon_min, lat_max = lon.min(), lat.max()
-            lon_min, lat_max = lon.min(), lat.min()
+            lon_min, lat_max = lon.min(), lat.max()
+            
             cell_size_lon = (lon.max() - lon.min()) / lon.shape[1]
             cell_size_lat = (lat.max() - lat.min()) / lat.shape[0]
             st.write(f"cell_size_lon: {str(cell_size_lon)}")
@@ -300,6 +300,7 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
             st.write(f"cell_size_lat: {str(cell_size_lat)}")
 
             # Create the GeoTIFF using rasterio
+            lat_max = lat.min() ######
             transform = from_origin(lon_min, lat_max, cell_size_lon, -abs(cell_size_lat))
             
             with tempfile.NamedTemporaryFile(delete=False, suffix='.tif') as tmp_file:
