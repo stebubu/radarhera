@@ -15,6 +15,7 @@ import json
 import leafmap.foliumap as leafmap
 
 from matplotlib import cm, colors
+from branca.colormap import linear
 
 # Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
