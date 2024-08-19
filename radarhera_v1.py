@@ -371,7 +371,7 @@ def display_cog_with_folium(cog_path):
 
 # Main processing and mapping
 #rain_data = fetch_rain_data(start_time, end_time)
-rain_data, tmp_file_path = fetch_acc_rain_data(start_time, end_time)
+rain_data = fetch_acc_rain_data(start_time, end_time)
 #geotiff_path = fetch_rain_data_as_geotiff(rain_data)
 
 geotiff_path =convert_accumulated_rain_to_geotiff(rain_data)
