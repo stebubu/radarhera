@@ -184,16 +184,16 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
         lon = accumulated_rain.coords['lon'].values
 
         # Print shapes for debugging
-        st.write(f"Latitude shape: {lat.shape}")
-        st.write(f"Longitude shape: {lon.shape}")
-        st.write(f"Rainrate shape: {rainrate.shape}")
+        #st.write(f"Latitude shape: {lat.shape}")
+        #st.write(f"Longitude shape: {lon.shape}")
+        #st.write(f"Rainrate shape: {rainrate.shape}")
 
         # Use np.meshgrid to align lat and lon with rainrate
         lon, lat = np.meshgrid(lon, lat)
 
         # Re-check shapes after meshgrid/alignment
-        st.write(f"After meshgrid/alignment - Latitude shape: {lat.shape}")
-        st.write(f"After meshgrid/alignment - Longitude shape: {lon.shape}")
+        #st.write(f"After meshgrid/alignment - Latitude shape: {lat.shape}")
+        #st.write(f"After meshgrid/alignment - Longitude shape: {lon.shape}")
 
         if lat.shape == lon.shape == rainrate.shape:
             # Calculate geographic transform parameters
@@ -201,10 +201,10 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
             
             cell_size_lon = (lon.max() - lon.min()) / lon.shape[1]
             cell_size_lat = (lat.max() - lat.min()) / lat.shape[0]
-            st.write(f"cell_size_lon: {str(cell_size_lon)}")
-            st.write(f"lon_min: {str(lon_min)}")
-            st.write(f"lat_max: {str(lat_max)}")
-            st.write(f"cell_size_lat: {str(cell_size_lat)}")
+            #st.write(f"cell_size_lon: {str(cell_size_lon)}")
+            #st.write(f"lon_min: {str(lon_min)}")
+            #st.write(f"lat_max: {str(lat_max)}")
+            #st.write(f"cell_size_lat: {str(cell_size_lat)}")
 
             # Create the GeoTIFF using rasterio
             
