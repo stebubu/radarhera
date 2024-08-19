@@ -110,7 +110,7 @@ def fetch_acc_rain_data(start_time, end_time):
                 
                 # Assuming the rain data is in a variable named 'rainrate'
                 if 'rainrate' in ds.variables:
-                    rain = ds['rainrate']
+                    rain = ds['rainrate'].squeeze()  # Remove any singleton dimensions
 
                     # Align the datasets before summing
                     if accumulated_rain is None:
