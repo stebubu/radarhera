@@ -45,8 +45,13 @@ lat_max = 44.2
 cell_size_lon = 0.001873207092285156293
 cell_size_lat = -0.00134747044569781039
 
-# Streamlit app layout
-st.title("Rain Rate Mapping")
+
+
+# Display the logo in the header
+st.image("logo.png", width=200)  # Adjust width as needed
+
+# Title and Sidebar
+st.title("Raster Mapping with Color Band using Folium")
 st.sidebar.title("Settings")
 
 # Date selection
