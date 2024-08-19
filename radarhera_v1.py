@@ -239,7 +239,7 @@ def fetch_rain_data_as_geotiff(rain_data):
 
         if lat.shape == lon.shape == rainrate.shape:
             # Create the GeoTIFF using rasterio
-            transform = from_origin(lon_min, lat_max, cell_size_lon, -abs(cell_size_lat))
+            transform = from_origin(lon_min, lat_max, cell_size_lon, abs(cell_size_lat))
             with tempfile.NamedTemporaryFile(delete=False, suffix='.tif') as tmp_file:
                 with rasterio.open(
                     tmp_file.name,
@@ -301,7 +301,7 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
 
             # Create the GeoTIFF using rasterio
             
-            transform = from_origin(lon_min, lat_max, cell_size_lon, -abs(cell_size_lat))
+            transform = from_origin(lon_min, lat_max, cell_size_lon, abs(cell_size_lat))
             
             with tempfile.NamedTemporaryFile(delete=False, suffix='.tif') as tmp_file:
                 with rasterio.open(
