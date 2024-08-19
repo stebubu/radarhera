@@ -71,17 +71,23 @@ cumulative_options = {
 cumulative_interval = st.sidebar.selectbox("Cumulative interval", options=list(cumulative_options.keys()))
 
 # Calculate start and end time
+
 end_time = selected_time
 start_time = end_time - cumulative_options[cumulative_interval]
 
 # Fetch data from API
-
-
+# Convert UTC time to CET time
+cet = pytz.timezone('CET')
+end_time_cet = end_time.astimezone(cet)
+start_time_cet = start_time.astimezone(cet)
 # Fetch data from API and accumulate rain data
 def fetch_acc_rain_data(start_time, end_time):
     current_time = start_time
-    st.error(f"'start UTC Time {start_time}")
-    st.error(f"'end UTC TIME {end_time}")
+    st.write(f"'start UTC Time {start_time}")
+    st.write(f"'end UTC TIME {end_time}")
+    st.write(f"'start CET Time {start_time_cet}")
+    st.write(f"'end CET TIME {end_time_cet}")
+    
     accumulated_rain = None
     temp_files = []  # List to keep track of temporary files for later cleanup
     
