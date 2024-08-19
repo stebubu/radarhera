@@ -483,6 +483,14 @@ def display_cog_with_folium(cog_path):
                 zindex=1
             )
             image_overlay.add_to(m)
+            
+            # Add a color legend
+            colormap = linear.Blues_09.scale(vmin, vmax)
+            colormap.caption = 'Rainfall Intensity'
+            colormap.add_to(m)
+
+            # Add a popup to show lat, lon, and value on click
+            m.add_child(folium.LatLngPopup())
 
             # Render the map in Streamlit
             folium_static(m)
