@@ -492,28 +492,23 @@ def display_cog_with_folium(cog_path):
 
 
             # Add a custom click handler to show pixel value
-            click_js = """
-            function(e) {
+            click_js = f"""
+            function(e) {{
                 var latlng = e.latlng;
                 var bounds = this._bounds;
-                var x = Math.floor((latlng.lng - bounds.getWest()) / (bounds.getEast() - bounds.getWest()) * {width});
-                var y = Math.floor((bounds.getNorth() - latlng.lat) / (bounds.getNorth() - bounds.getSouth()) * {height});
-                var value = {band1}[y * {width} + x];
+                var x = Math.floor((latlng.lng - bounds.getWest()) / (bounds.getEast() - bounds.getWest()) * {band1.shape[1]});
+                var y = Math.floor((bounds.getNorth() - latlng.lat) / (bounds.getNorth() - bounds.getSouth()) * {band1.shape[0]});
+                var value = {list(band1.flatten())}[y * {band1.shape[1]} + x];
                 L.popup()
                     .setLatLng(latlng)
                     .setContent("Lat: " + latlng.lat.toFixed(5) + "<br>Lng: " + latlng.lng.toFixed(5) + "<br>Value: " + value)
                     .openOn(this);
-            }
-            """.format(width=band1.shape[1], height=band1.shape[0], band1=list(band1.flatten()))
+            }}
+            """
 
+            # Add the click handler to the map using a custom JavaScript function
             m.add_child(folium.ClickForMarker(popup="Click to see pixel value"))
-            m.add_child(folium.GeoJsonPopup(fields=['lat', 'lon'], aliases=['Lat', 'Lon']))
-
-            # Attach the click handler to the map
-            m.add_child(folium.GeoJsonPopup(fields=['lat', 'lon'], aliases=['Lat', 'Lon']))
-            m.add_child(folium.GeoJsonPopup(fields=['Value'], aliases=['Value'], localize=True))
-            folium.GeoJson(data=None, name="Click For Pixel Value").add_to(m)
-            folium.GeoJson(None, style_function=None, on_each_feature=click_js).add_to(m)
+            m.get_root().html.add_child(folium.Element(f'<script>{click_js}</script>'))
 
             # Add a popup to show lat, lon, and value on click
             #m.add_child(folium.LatLngPopup())
