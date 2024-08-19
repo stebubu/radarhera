@@ -16,6 +16,7 @@ import leafmap.foliumap as leafmap
 
 from matplotlib import cm, colors
 from branca.colormap import linear
+import pytz
 
 # Authentication and request parameters
 auth_url = "https://api.hypermeteo.com/auth-b2b/authenticate"
@@ -79,8 +80,8 @@ start_time = end_time - cumulative_options[cumulative_interval]
 # Fetch data from API and accumulate rain data
 def fetch_acc_rain_data(start_time, end_time):
     current_time = start_time
-    st.error(f"'start {start_time}")
-    st.error(f"'end {end_time}")
+    st.error(f"'start UTC Time {start_time}")
+    st.error(f"'end UTC TIME {end_time}")
     accumulated_rain = None
     temp_files = []  # List to keep track of temporary files for later cleanup
     
@@ -145,7 +146,7 @@ def fetch_acc_rain_data(start_time, end_time):
     
     # Clean up temporary files
     for file_path in temp_files:
-        st.error(f"Cleaning: {file_path}")
+        #st.error(f"Cleaning: {file_path}")
         try:
             os.remove(file_path)
         except Exception as e:
