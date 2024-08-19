@@ -293,9 +293,14 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
             lon_min, lat_max = lon.min(), lat.max()
             cell_size_lon = (lon.max() - lon.min()) / lon.shape[1]
             cell_size_lat = (lat.max() - lat.min()) / lat.shape[0]
+            st.write(f"cell_size_lon: {str(cell_size_lon)}")
+            st.write(f"lon_min: {str(lon_min)}")
+            st.write(f"lat_max: {str(lat_max)}")
+            st.write(f"cell_size_lat: {str(cell_size_lat)}")
 
             # Create the GeoTIFF using rasterio
             transform = from_origin(lon_min, lat_max, cell_size_lon, abs(cell_size_lat))
+            
             with tempfile.NamedTemporaryFile(delete=False, suffix='.tif') as tmp_file:
                 with rasterio.open(
                     tmp_file.name,
