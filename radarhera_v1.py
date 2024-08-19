@@ -427,7 +427,7 @@ def display_cog_with_folium(cog_path):
             count = src.count
 
             # Transform bounds to lat/lon
-            lon_min, lat_min, lon_max, lat_max = transform_bounds(crs, 'EPSG:4326', *bounds)
+            lon_min, lat_min, lon_max, lat_max = bounds
             st.write(f"Bounds (Lat/Lon): {(lat_min, lon_min), (lat_max, lon_max)}")
 
             # Read the first band (assuming single-band raster for simplicity)
