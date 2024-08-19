@@ -496,7 +496,7 @@ def display_cog_with_folium(cog_path):
             # Add a popup to show lat, lon, and value on click
             #m.add_child(folium.LatLngPopup())
                       
-            folium.ClickForMarker(popup="Click to see lat/lon").add_to(m)
+            #folium.ClickForMarker(popup="Click to see lat/lon").add_to(m)
 
 
             # Render the map in Streamlit
