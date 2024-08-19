@@ -290,7 +290,8 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
 
         if lat.shape == lon.shape == rainrate.shape:
             # Calculate geographic transform parameters
-            lon_min, lat_max = lon.min(), lat.max()
+            #lon_min, lat_max = lon.min(), lat.max()
+            lon_min, lat_max = lon.min(), lat.min()
             cell_size_lon = (lon.max() - lon.min()) / lon.shape[1]
             cell_size_lat = (lat.max() - lat.min()) / lat.shape[0]
             st.write(f"cell_size_lon: {str(cell_size_lon)}")
