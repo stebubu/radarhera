@@ -136,12 +136,12 @@ def fetch_acc_rain_data(start_time, end_time):
         current_time += timedelta(minutes=5)
     
     # Clean up temporary files
-    for file_path in temp_files:
+    '''for file_path in temp_files:
         st.error(f"Cleaning: {file_path}")
         try:
             os.remove(file_path)
         except Exception as e:
-            st.error(f"Failed to remove temporary file: {file_path}. Error: {e}")
+            st.error(f"Failed to remove temporary file: {file_path}. Error: {e}")'''
     # Final processing to sum across the first dimension (7 slices)
     if accumulated_rain is not None:
         accumulated_rain = accumulated_rain.sum(dim='time')  # Replace 'dim_0' with the actual dimension name if available
@@ -150,7 +150,7 @@ def fetch_acc_rain_data(start_time, end_time):
         accumulated_rain = accumulated_rain.squeeze()
         st.write(f"somma finale: {accumulated_rain.sum()}")
 
-    return accumulated_rain            
+    return accumulated_rain, tmp_file_path            
      
     '''# Final processing to ensure a single 2D array
     if accumulated_rain is not None:
@@ -300,7 +300,7 @@ def convert_accumulated_rain_to_geotiff(accumulated_rain):
             st.write(f"cell_size_lat: {str(cell_size_lat)}")
 
             # Create the GeoTIFF using rasterio
-            lat_max = lat.min() ######
+            
             transform = from_origin(lon_min, lat_max, cell_size_lon, -abs(cell_size_lat))
             
             with tempfile.NamedTemporaryFile(delete=False, suffix='.tif') as tmp_file:
@@ -500,7 +500,9 @@ def display_cog_on_map(cog_path, mapbox_token):
 rain_data = fetch_acc_rain_data(start_time, end_time)
 #geotiff_path = fetch_rain_data_as_geotiff(rain_data)
 
-geotiff_path =convert_accumulated_rain_to_geotiff(rain_data)
+geotiff_path, tmp_file_path =convert_accumulated_rain_to_geotiff(rain_data)
+
+
 if geotiff_path:
     st.write("GeoTIFF created at:", geotiff_path)
     
@@ -518,6 +520,13 @@ if geotiff_path:
             data=file,
             file_name="rainrate_cog.tif",
             mime="image/tiff"
+        )
+    with open(tmp_file_path, "rb") as file:
+        st.download_button(
+            label="Download NC",
+            data=file,
+            file_name="rainrate.nc",
+            #mime="image/tiff"
         )
 else:
     st.error("Failed to create GeoTIFF.")
