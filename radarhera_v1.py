@@ -51,7 +51,7 @@ cell_size_lat = -0.00134747044569781039
 st.image("logo.png", width=200)  # Adjust width as needed
 
 # Title and Sidebar
-st.title("Raster Mapping with Color Band using Folium")
+st.title("HERA RADAR")
 st.sidebar.title("Settings")
 
 # Date selection
