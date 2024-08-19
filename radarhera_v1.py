@@ -115,6 +115,12 @@ def fetch_acc_rain_data(start_time, end_time):
                     # Align the datasets before summing
                     if accumulated_rain is None:
                         accumulated_rain = rain
+                        st.write(f"Current time: {current_time}")
+                        st.write(f"Rainrate shape: {rain.shape}")
+                        st.write(f"Rainrate sum: {rain.sum()}")
+                        st.write(f"Accumulated rain dimensions: {accumulated_rain.dims}")
+                        st.write(f"Accumulated rain shape before sum: {accumulated_rain.shape}")
+
                     else:
                         # Align the datasets using 'outer' join
                         accumulated_rain, rain = xr.align(accumulated_rain, rain, join='outer')
