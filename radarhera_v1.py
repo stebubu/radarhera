@@ -367,28 +367,19 @@ def display_cog_with_folium(cog_path):
             # Add a click event listener
             m.add_child(folium.LatLngPopup())
 
-            # Add a custom click listener to update the text box with the pixel value
-            click_js = """
-            function onMapClick(e) {
-                var lat = e.latlng.lat;
-                var lon = e.latlng.lng;
-
-                var pixel_value;
-                fetch('/get_pixel_value?lat=' + lat + '&lon=' + lon)
-                    .then(response => response.json())
-                    .then(data => {
-                        pixel_value = data.pixel_value;
-                        document.getElementById("pixel_value_box").value = 'Lat: ' + lat + ', Lon: ' + lon + ', Value: ' + pixel_value;
-                    });
-            }
-
-            map.on('click', onMapClick);
-            """
-
-            m.get_root().html.add_child(folium.Element(f'<script>{click_js}</script>'))
-
             # Render the map in Streamlit
             folium_static(m)
+
+            # Use streamlit session state to store the last clicked location
+            if "clicked_latlon" not in st.session_state:
+                st.session_state["clicked_latlon"] = (None, None)
+
+            # Check if a click event occurred
+            clicked_latlon = st.session_state["clicked_latlon"]
+            if clicked_latlon != (None, None):
+                lat, lon = clicked_latlon
+                pixel_value = get_pixel_value(cog_path, lat, lon)
+                st.write(f"Pixel Value: Lat: {lat}, Lon: {lon}, Value: {pixel_value}")
 
     except Exception as e:
         st.error(f"Failed to display COG with Folium: {e}")
