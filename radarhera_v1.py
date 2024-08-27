@@ -379,7 +379,7 @@ def display_cog_with_folium(cog_path):
             if clicked_latlon != (None, None):
                 lat, lon = clicked_latlon
                 pixel_value = get_pixel_value(cog_path, lat, lon)
-                st.write(f"Pixel Value: Lat: {lat}, Lon: {lon}, Value: {pixel_value}")
+                st.write(f"Pixel Value: Value: {pixel_value}")
 
     except Exception as e:
         st.error(f"Failed to display COG with Folium: {e}")
