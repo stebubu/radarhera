@@ -346,7 +346,7 @@ def display_cog_with_folium(cog_path):
 
 
             # Create a folium map centered on the raster
-            m = folium.Map(location=[(lat_min + lat_max) / 2, (lon_min + lon_max) / 2], zoom_start=10)
+            m = folium.Map(location=[(lat_min + lat_max) / 2, (lon_min + lon_max) / 2], zoom_start=10, tiles="CartoDB Positron")
 
             # Add the raster as an image overlay
             image_overlay = folium.raster_layers.ImageOverlay(
