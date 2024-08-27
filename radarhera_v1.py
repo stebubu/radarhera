@@ -367,27 +367,25 @@ def display_cog_with_folium(cog_path):
             # Add a click event listener
             m.add_child(folium.LatLngPopup())
 
-            # Render the map in Streamlit
-            folium_static(m)
+            # Add a custom click listener to update the text box with the pixel value
+            click_js = """
+            function onMapClick(e) {
+                var lat = e.latlng.lat;
+                var lon = e.latlng.lng;
 
-            # Handle click event to update the pixel value label
-            def on_click(lat, lon):
-                pixel_value = get_pixel_value(cog_path, lat, lon)
-                st.session_state['pixel_value'] = pixel_value
+                var pixel_value;
+                fetch('/get_pixel_value?lat=' + lat + '&lon=' + lon)
+                    .then(response => response.json())
+                    .then(data => {
+                        pixel_value = data.pixel_value;
+                        document.getElementById("pixel_value_box").value = 'Lat: ' + lat + ', Lon: ' + lon + ', Value: ' + pixel_value;
+                    });
+            }
 
-            # Update the pixel value outside the map
-            if 'pixel_value' in st.session_state:
-                st.write(f"Pixel Value: {st.session_state['pixel_value']}")
-            else:
-                st.write("Click on the map to get the pixel value.")
+            map.on('click', onMapClick);
+            """
 
-        
-
-            # Add a popup to show lat, lon, and value on click
-            #m.add_child(folium.LatLngPopup())
-                      
-            #folium.ClickForMarker(popup="Click to see lat/lon").add_to(m)
-
+            m.get_root().html.add_child(folium.Element(f'<script>{click_js}</script>'))
 
             # Render the map in Streamlit
             folium_static(m)
