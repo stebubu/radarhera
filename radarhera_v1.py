@@ -363,7 +363,23 @@ def display_cog_with_folium(cog_path):
             colormap = linear.Blues_09.scale(vmin, vmax)
             colormap.caption = 'Rainfall Intensity'
             colormap.add_to(m)
+            
+            # Add a click event listener
+            m.add_child(folium.LatLngPopup())
 
+            # Render the map in Streamlit
+            folium_static(m)
+
+            # Handle click event to update the pixel value label
+            def on_click(lat, lon):
+                pixel_value = get_pixel_value(cog_path, lat, lon)
+                st.session_state['pixel_value'] = pixel_value
+
+            # Update the pixel value outside the map
+            if 'pixel_value' in st.session_state:
+                st.write(f"Pixel Value: {st.session_state['pixel_value']}")
+            else:
+                st.write("Click on the map to get the pixel value.")
 
         
 
@@ -379,6 +395,16 @@ def display_cog_with_folium(cog_path):
     except Exception as e:
         st.error(f"Failed to display COG with Folium: {e}")
         st.write(f"Error details: {str(e)}")
+
+
+# Function to get pixel value from COG
+def get_pixel_value(cog_path, lat, lon):
+    with rasterio.open(cog_path) as src:
+        row, col = src.index(lon, lat)
+        window = windows.Window(col_off=col, row_off=row, width=1, height=1)
+        value = src.read(1, window=window)[0, 0]
+    return value
+
 
 
 # Main processing and mapping
