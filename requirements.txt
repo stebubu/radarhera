@@ -14,3 +14,4 @@ rasterio
 leafmap
 rio-cogeo
 mapboxgl
+setuptools
